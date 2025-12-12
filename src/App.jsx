@@ -50,6 +50,7 @@ export default function InvestmentCalculator() {
   const [targetGain, setTargetGain] = useState(50000);
   const [savedSimulations, setSavedSimulations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   // Thèmes
   const theme = darkMode ? {
@@ -118,6 +119,14 @@ export default function InvestmentCalculator() {
   useEffect(() => {
     setAmount(selectedFund.minimum);
   }, [selectedFund]);
+
+  // Marquer les animations comme terminées après le premier rendu
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setHasAnimated(true);
+    }, 1000); // Après 1 seconde, désactiver les animations
+    return () => clearTimeout(timer);
+  }, []);
 
   // Fonction de login
   const handleLogin = (e) => {
@@ -269,8 +278,8 @@ export default function InvestmentCalculator() {
       padding: '30px',
       border: `1px solid ${theme.cardBorder}`,
       boxShadow: theme.shadow,
-      animation: `fadeInUp 0.8s ease-out ${delay}s backwards`,
-      transition: 'all 0.5s ease'
+      animation: hasAnimated ? 'none' : `fadeInUp 0.8s ease-out ${delay}s backwards`,
+      transition: 'all 0.3s ease'
     }}>
       {children}
     </div>
@@ -316,7 +325,7 @@ export default function InvestmentCalculator() {
             marginBottom: '30px',
             fontSize: '0.95rem'
           }}>
-            Investment Calculator Pro
+            Draham Invest Calculator
           </p>
 
           <form onSubmit={handleLogin}>
@@ -413,17 +422,6 @@ export default function InvestmentCalculator() {
               Se connecter
             </button>
           </form>
-
-          <div style={{
-            marginTop: '25px',
-            padding: '15px',
-            background: 'rgba(59, 130, 246, 0.1)',
-            borderRadius: '8px',
-            fontSize: '0.85rem',
-            color: '#93c5fd'
-          }}>
-          
-          </div>
         </div>
 
         <style>{`
@@ -523,7 +521,7 @@ export default function InvestmentCalculator() {
             marginBottom: '10px',
             letterSpacing: '-0.02em'
           }}>
-            Investment Calculator Pro
+            Draham Invest Calculator
           </h1>
           <p style={{
             fontSize: '1.1rem',
@@ -1109,7 +1107,7 @@ export default function InvestmentCalculator() {
                           : `2px solid ${theme.cardBorder}`,
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        animation: `fadeInRight 0.6s ease-out ${0.1 * idx}s backwards`
+                        animation: hasAnimated ? 'none' : `fadeInRight 0.6s ease-out ${0.1 * idx}s backwards`
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'translateX(4px)';
