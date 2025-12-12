@@ -4,7 +4,7 @@ import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, Responsi
 // 🔐 CONFIGURATION LOGIN - Changez ces valeurs !
 const CREDENTIALS = {
   username: 'admin',
-  password: 'invest2024'
+  password: 'investdraham'
 };
 
 export default function InvestmentCalculator() {
