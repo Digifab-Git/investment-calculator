@@ -84,14 +84,20 @@ export default function InvestmentCalculator() {
     if (auth === 'true') setIsAuthenticated(true);
   }, []);
 
-  // Sauvegarder/charger simulations
+  // Sauvegarder/charger simulations (avec debounce pour éviter rafraîchissement)
   useEffect(() => {
     if (isAuthenticated) {
-      localStorage.setItem('lastSimulation', JSON.stringify({
-        fund: selectedFund.name,
-        amount: amount,
-        date: new Date().toISOString()
-      }));
+      // Utiliser un délai pour éviter de sauvegarder à chaque mouvement du slider
+      const timeoutId = setTimeout(() => {
+        localStorage.setItem('lastSimulation', JSON.stringify({
+          fund: selectedFund.name,
+          amount: amount,
+          date: new Date().toISOString()
+        }));
+      }, 500); // Attendre 500ms après le dernier changement
+
+      // Nettoyer le timeout si l'utilisateur continue à bouger le slider
+      return () => clearTimeout(timeoutId);
     }
   }, [selectedFund, amount, isAuthenticated]);
 
