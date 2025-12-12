@@ -422,7 +422,7 @@ export default function InvestmentCalculator() {
             fontSize: '0.85rem',
             color: '#93c5fd'
           }}>
-            💡 <strong>Démo:</strong> admin / invest2024
+          
           </div>
         </div>
 
