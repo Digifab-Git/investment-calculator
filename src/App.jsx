@@ -678,14 +678,50 @@ export default function InvestmentCalculator() {
               }}>
                 Gain souhaité : {formatCurrency(targetGain)}
               </label>
+              
+              {/* Slider */}
               <input
                 type="range"
                 min="1000"
-                max="500000"
-                step="1000"
+                max="1000000"
+                step="5000"
                 value={targetGain}
                 onChange={(e) => setTargetGain(Number(e.target.value))}
-                style={{ width: '100%' }}
+                onInput={(e) => setTargetGain(Number(e.target.value))}
+                style={{
+                  width: '100%',
+                  marginBottom: '15px',
+                  height: '8px',
+                  borderRadius: '5px',
+                  outline: 'none',
+                  WebkitAppearance: 'none',
+                  appearance: 'none',
+                  background: theme.inputBg,
+                  cursor: 'pointer',
+                  WebkitTapHighlightColor: 'transparent'
+                }}
+              />
+              
+              {/* Input manuel */}
+              <input
+                type="number"
+                value={targetGain}
+                onChange={(e) => setTargetGain(Number(e.target.value))}
+                min={1000}
+                step={5000}
+                placeholder="Saisissez un montant..."
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '12px',
+                  border: `2px solid rgba(16, 185, 129, 0.3)`,
+                  background: theme.inputBg,
+                  color: theme.text,
+                  fontSize: '1.3rem',
+                  fontWeight: '700',
+                  outline: 'none',
+                  transition: 'all 0.3s ease'
+                }}
               />
             </div>
 
@@ -971,7 +1007,7 @@ export default function InvestmentCalculator() {
                 Montant à investir : {formatCurrency(amount)}
               </label>
               
-              {/* Slider avec styles améliorés pour mobile */}
+              {/* Slider optimisé pour interaction continue fluide */}
               <input
                 type="range"
                 min={selectedFund.minimum}
@@ -979,6 +1015,7 @@ export default function InvestmentCalculator() {
                 step={selectedFund.minimum >= 10000 ? 1000 : 100}
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
+                onInput={(e) => setAmount(Number(e.target.value))}
                 style={{
                   width: '100%',
                   marginBottom: '15px',
@@ -987,9 +1024,9 @@ export default function InvestmentCalculator() {
                   outline: 'none',
                   WebkitAppearance: 'none',
                   appearance: 'none',
-                  background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${((amount - selectedFund.minimum) / (500000 - selectedFund.minimum)) * 100}%, ${theme.inputBg} ${((amount - selectedFund.minimum) / (500000 - selectedFund.minimum)) * 100}%, ${theme.inputBg} 100%)`,
+                  background: theme.inputBg,
                   cursor: 'pointer',
-                  touchAction: 'none'
+                  WebkitTapHighlightColor: 'transparent'
                 }}
               />
 
@@ -1282,7 +1319,10 @@ export default function InvestmentCalculator() {
           cursor: pointer;
           border-radius: 50%;
           box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+          will-change: transform;
+          position: relative;
+          z-index: 2;
         }
         
         input[type="range"]::-webkit-slider-thumb:hover {
@@ -1295,6 +1335,14 @@ export default function InvestmentCalculator() {
           box-shadow: 0 4px 16px rgba(99, 102, 241, 0.8);
         }
         
+        input[type="range"]::-webkit-slider-runnable-track {
+          width: 100%;
+          height: 8px;
+          cursor: pointer;
+          background: transparent;
+          border-radius: 5px;
+        }
+        
         input[type="range"]::-moz-range-thumb {
           width: 24px;
           height: 24px;
@@ -1303,7 +1351,8 @@ export default function InvestmentCalculator() {
           border-radius: 50%;
           border: none;
           box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+          will-change: transform;
         }
         
         input[type="range"]::-moz-range-thumb:hover {
@@ -1314,6 +1363,14 @@ export default function InvestmentCalculator() {
         input[type="range"]::-moz-range-thumb:active {
           transform: scale(1.2);
           box-shadow: 0 4px 16px rgba(99, 102, 241, 0.8);
+        }
+        
+        input[type="range"]::-moz-range-track {
+          width: 100%;
+          height: 8px;
+          cursor: pointer;
+          background: transparent;
+          border-radius: 5px;
         }
 
         /* Amélioration pour mobile */
