@@ -642,8 +642,14 @@ export default function InvestmentCalculator() {
                   cursor: 'pointer'
                 }}
               >
-                {funds.filter(f => f.name !== selectedFund.name).map(fund => (
-                  <option key={fund.name} value={fund.name}>{fund.name}</option>
+                {funds.map(fund => (
+                  <option 
+                    key={fund.name} 
+                    value={fund.name}
+                    disabled={fund.name === selectedFund.name}
+                  >
+                    {fund.name} {fund.name === selectedFund.name ? '(fonds principal)' : ''}
+                  </option>
                 ))}
               </select>
             </div>
@@ -799,24 +805,49 @@ export default function InvestmentCalculator() {
             </div>
           </Card>
 
-          {/* Investment Amount avec Slider */}
+          {/* Investment Amount avec Stepper */}
           <Card delay={0.2}>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>
               💰 Votre Investissement
             </h2>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
+            {/* Affichage du montant */}
+            <div style={{
+              textAlign: 'center',
+              padding: '25px',
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.05))',
+              borderRadius: '16px',
+              marginBottom: '20px',
+              border: '2px solid rgba(99, 102, 241, 0.2)'
+            }}>
+              <div style={{
                 fontSize: '0.9rem',
-                fontWeight: '600',
-                marginBottom: '10px',
+                color: theme.textSecondary,
+                marginBottom: '8px',
+                fontWeight: '600'
+              }}>
+                Montant à investir
+              </div>
+              <div style={{
+                fontSize: '2.5rem',
+                fontWeight: '800',
+                background: 'linear-gradient(135deg, #6366f1 0%, #a78bfa 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '5px'
+              }}>
+                {formatCurrency(amount)}
+              </div>
+              <div style={{
+                fontSize: '0.85rem',
                 color: theme.textTertiary
               }}>
-                Montant à investir : {formatCurrency(amount)}
-              </label>
-              
-              {/* Slider simplifié au maximum pour fluidité */}
+                Min: {formatCurrency(selectedFund.minimum)} • Max: $500,000
+              </div>
+            </div>
+
+            {/* Slider */}
+            <div style={{ marginBottom: '20px' }}>
               <input
                 type="range"
                 min={selectedFund.minimum}
@@ -826,47 +857,132 @@ export default function InvestmentCalculator() {
                 onChange={(e) => setAmount(Number(e.target.value))}
                 className="investment-slider"
               />
+            </div>
 
-              {/* Input numérique - Non contrôlé pour éviter perte focus */}
-              <input
-                ref={inputRef}
-                type="text"
-                inputMode="numeric"
-                key={`amount-${selectedFund.name}`}
-                defaultValue={amount}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  if (val === '') {
-                    setAmount(0);
-                  } else {
-                    const num = parseInt(val, 10);
-                    if (!isNaN(num)) {
-                      setAmount(num);
-                    }
-                  }
-                }}
-                onBlur={() => {
-                  if (amount < selectedFund.minimum) {
-                    setAmount(selectedFund.minimum);
-                    if (inputRef.current) {
-                      inputRef.current.value = selectedFund.minimum;
-                    }
-                  }
-                }}
-                placeholder={`Min: ${formatCurrency(selectedFund.minimum)}`}
+            {/* Boutons Stepper */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '10px',
+              marginBottom: '15px'
+            }}>
+              <button
+                onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 10000))}
                 style={{
-                  width: '100%',
-                  padding: '14px',
-                  borderRadius: '12px',
-                  border: `2px solid ${isValid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-                  background: theme.inputBg,
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  border: `2px solid ${theme.cardBorder}`,
+                  background: theme.cardBg,
                   color: theme.text,
-                  fontSize: '1.3rem',
+                  fontSize: '1rem',
                   fontWeight: '700',
-                  outline: 'none',
+                  cursor: 'pointer',
                   transition: 'all 0.3s ease'
                 }}
-              />
+                onMouseEnter={(e) => e.currentTarget.style.background = theme.hoverBg}
+                onMouseLeave={(e) => e.currentTarget.style.background = theme.cardBg}
+              >
+                − $10,000
+              </button>
+              
+              <button
+                onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))}
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  border: `2px solid ${theme.cardBorder}`,
+                  background: theme.cardBg,
+                  color: theme.text,
+                  fontSize: '1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = theme.hoverBg}
+                onMouseLeave={(e) => e.currentTarget.style.background = theme.cardBg}
+              >
+                − $1,000
+              </button>
+              
+              <button
+                onClick={() => setAmount(Math.min(500000, amount + 1000))}
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  border: '2px solid rgba(16, 185, 129, 0.3)',
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  color: '#10b981',
+                  fontSize: '1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'}
+              >
+                + $1,000
+              </button>
+              
+              <button
+                onClick={() => setAmount(Math.min(500000, amount + 10000))}
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  border: '2px solid rgba(16, 185, 129, 0.3)',
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  color: '#10b981',
+                  fontSize: '1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'}
+              >
+                + $10,000
+              </button>
+            </div>
+
+            {/* Boutons Reset */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '10px'
+            }}>
+              <button
+                onClick={() => setAmount(selectedFund.minimum)}
+                style={{
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.cardBorder}`,
+                  background: theme.inputBg,
+                  color: theme.textSecondary,
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                ↺ Minimum
+              </button>
+              
+              <button
+                onClick={() => setAmount(500000)}
+                style={{
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.cardBorder}`,
+                  background: theme.inputBg,
+                  color: theme.textSecondary,
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                ↻ Maximum
+              </button>
+            </div>
             </div>
 
             <div style={{
