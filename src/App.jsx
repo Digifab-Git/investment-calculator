@@ -679,7 +679,7 @@ export default function InvestmentCalculator() {
                 Gain souhaité : {formatCurrency(targetGain)}
               </label>
               
-              {/* Slider */}
+              {/* Slider simplifié */}
               <input
                 type="range"
                 min="1000"
@@ -687,26 +687,21 @@ export default function InvestmentCalculator() {
                 step="5000"
                 value={targetGain}
                 onChange={(e) => setTargetGain(Number(e.target.value))}
-                onInput={(e) => setTargetGain(Number(e.target.value))}
-                style={{
-                  width: '100%',
-                  marginBottom: '15px',
-                  height: '8px',
-                  borderRadius: '5px',
-                  outline: 'none',
-                  WebkitAppearance: 'none',
-                  appearance: 'none',
-                  background: theme.inputBg,
-                  cursor: 'pointer',
-                  WebkitTapHighlightColor: 'transparent'
-                }}
+                className="investment-slider"
               />
               
               {/* Input manuel */}
               <input
                 type="number"
                 value={targetGain}
-                onChange={(e) => setTargetGain(Number(e.target.value))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '' || val === '0') {
+                    setTargetGain(1000);
+                  } else {
+                    setTargetGain(Number(val));
+                  }
+                }}
                 min={1000}
                 step={5000}
                 placeholder="Saisissez un montant..."
@@ -1007,7 +1002,7 @@ export default function InvestmentCalculator() {
                 Montant à investir : {formatCurrency(amount)}
               </label>
               
-              {/* Slider optimisé pour interaction continue fluide */}
+              {/* Slider simplifié au maximum pour fluidité */}
               <input
                 type="range"
                 min={selectedFund.minimum}
@@ -1015,19 +1010,7 @@ export default function InvestmentCalculator() {
                 step={selectedFund.minimum >= 10000 ? 1000 : 100}
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                onInput={(e) => setAmount(Number(e.target.value))}
-                style={{
-                  width: '100%',
-                  marginBottom: '15px',
-                  height: '8px',
-                  borderRadius: '5px',
-                  outline: 'none',
-                  WebkitAppearance: 'none',
-                  appearance: 'none',
-                  background: theme.inputBg,
-                  cursor: 'pointer',
-                  WebkitTapHighlightColor: 'transparent'
-                }}
+                className="investment-slider"
               />
 
               {/* Input numérique */}
@@ -1301,94 +1284,79 @@ export default function InvestmentCalculator() {
         
         * { box-sizing: border-box; }
         
-        input[type="range"] {
+        /* Slider ultra-simplifié pour fluidité maximale */
+        .investment-slider {
           -webkit-appearance: none;
           appearance: none;
+          width: 100%;
           height: 8px;
           background: ${darkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(203, 213, 225, 0.4)'};
           outline: none;
           border-radius: 5px;
+          margin: 15px 0;
+          cursor: pointer;
         }
         
-        input[type="range"]::-webkit-slider-thumb {
+        .investment-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 24px;
-          height: 24px;
+          width: 26px;
+          height: 26px;
           background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-          cursor: pointer;
+          cursor: grab;
           border-radius: 50%;
-          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
-          will-change: transform;
-          position: relative;
-          z-index: 2;
+          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
+          border: 3px solid white;
         }
         
-        input[type="range"]::-webkit-slider-thumb:hover {
+        .investment-slider::-webkit-slider-thumb:active {
+          cursor: grabbing;
           transform: scale(1.1);
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.7);
         }
         
-        input[type="range"]::-webkit-slider-thumb:active {
-          transform: scale(1.2);
-          box-shadow: 0 4px 16px rgba(99, 102, 241, 0.8);
-        }
-        
-        input[type="range"]::-webkit-slider-runnable-track {
-          width: 100%;
-          height: 8px;
-          cursor: pointer;
-          background: transparent;
-          border-radius: 5px;
-        }
-        
-        input[type="range"]::-moz-range-thumb {
-          width: 24px;
-          height: 24px;
+        .investment-slider::-moz-range-thumb {
+          width: 26px;
+          height: 26px;
           background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-          cursor: pointer;
+          cursor: grab;
           border-radius: 50%;
-          border: none;
-          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
-          will-change: transform;
+          border: 3px solid white;
+          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
         }
         
-        input[type="range"]::-moz-range-thumb:hover {
+        .investment-slider::-moz-range-thumb:active {
+          cursor: grabbing;
           transform: scale(1.1);
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.7);
         }
         
-        input[type="range"]::-moz-range-thumb:active {
-          transform: scale(1.2);
-          box-shadow: 0 4px 16px rgba(99, 102, 241, 0.8);
-        }
-        
-        input[type="range"]::-moz-range-track {
-          width: 100%;
+        .investment-slider::-webkit-slider-runnable-track {
           height: 8px;
-          cursor: pointer;
           background: transparent;
-          border-radius: 5px;
+        }
+        
+        .investment-slider::-moz-range-track {
+          height: 8px;
+          background: transparent;
         }
 
         /* Amélioration pour mobile */
         @media (max-width: 768px) {
           h1 { font-size: 2rem !important; }
           
-          input[type="range"]::-webkit-slider-thumb {
-            width: 28px;
-            height: 28px;
-          }
-          
-          input[type="range"]::-moz-range-thumb {
-            width: 28px;
-            height: 28px;
-          }
-          
-          input[type="range"] {
+          .investment-slider {
             height: 10px !important;
+          }
+          
+          .investment-slider::-webkit-slider-thumb {
+            width: 32px;
+            height: 32px;
+          }
+          
+          .investment-slider::-moz-range-thumb {
+            width: 32px;
+            height: 32px;
           }
         }
       `}</style>
