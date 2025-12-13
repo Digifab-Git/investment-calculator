@@ -32,6 +32,7 @@ export default function InvestmentCalculator() {
   // États
   const [selectedFund, setSelectedFund] = useState(funds[0]);
   const [amount, setAmount] = useState(selectedFund.minimum);
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]); // Format YYYY-MM-DD
   const [darkMode, setDarkMode] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
@@ -117,9 +118,45 @@ export default function InvestmentCalculator() {
   }, []);
 
   // Fonction de login
-  // Calculs
-  const totalDays = selectedFund.duration * 30;
-  const workingDays = Math.round(totalDays * 5 / 7);
+  
+  // Calcul de la date de fin (début + durée en mois)
+  const calculateEndDate = (start, months) => {
+    const startDate = new Date(start);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + months);
+    return endDate;
+  };
+  
+  // Calcul PRÉCIS des jours ouvrables entre deux dates
+  // Les jours fériés COMPTENT (on ne travaille pas mais on gagne)
+  const calculateWorkingDaysBetweenDates = (startDateStr, endDate) => {
+    const start = new Date(startDateStr);
+    const end = new Date(endDate);
+    
+    let workingDays = 0;
+    const current = new Date(start);
+    
+    // Parcourir chaque jour entre start et end
+    while (current < end) {
+      const dayOfWeek = current.getDay();
+      
+      // Si ce n'est PAS samedi (6) ni dimanche (0), c'est un jour ouvrable
+      // Les jours fériés en semaine COMPTENT
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        workingDays++;
+      }
+      
+      // Passer au jour suivant
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return workingDays;
+  };
+  
+  // Calculs basés sur les dates réelles
+  const endDate = calculateEndDate(startDate, selectedFund.duration);
+  const totalDays = Math.floor((endDate - new Date(startDate)) / (1000 * 60 * 60 * 24));
+  const workingDays = calculateWorkingDaysBetweenDates(startDate, endDate);
   const dailyGain = amount * selectedFund.rate;
   const incomeView = amount + (dailyGain * workingDays);
   const growthView = amount + (dailyGain * workingDays);
@@ -128,6 +165,7 @@ export default function InvestmentCalculator() {
   const compoundGain = compoundView - amount;
   const roi = ((compoundView - amount) / amount) * 100;
   const isValid = amount >= selectedFund.minimum;
+
 
   // Calculs comparaison
   const compareTotalDays = compareWith.duration * 30;
@@ -982,6 +1020,127 @@ export default function InvestmentCalculator() {
               >
                 ↻ Maximum
               </button>
+            </div>
+
+            {/* Dates d'investissement */}
+            <div style={{
+              marginTop: '25px',
+              marginBottom: '20px',
+              padding: '20px',
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.02))',
+              borderRadius: '12px',
+              border: `1px solid ${theme.cardBorder}`
+            }}>
+              <h3 style={{ 
+                fontSize: '1rem', 
+                fontWeight: '700', 
+                marginBottom: '15px',
+                color: theme.text 
+              }}>
+                📅 Période d'investissement
+              </h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
+                {/* Date de début */}
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    marginBottom: '8px',
+                    color: theme.textTertiary
+                  }}>
+                    Date de début
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '10px',
+                      border: `2px solid ${theme.cardBorder}`,
+                      background: theme.inputBg,
+                      color: theme.text,
+                      fontSize: '0.95rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                {/* Date de fin (calculée automatiquement) */}
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    marginBottom: '8px',
+                    color: theme.textTertiary
+                  }}>
+                    Date de fin ({selectedFund.duration} mois)
+                  </label>
+                  <div style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '10px',
+                    border: `2px solid rgba(16, 185, 129, 0.3)`,
+                    background: 'rgba(16, 185, 129, 0.05)',
+                    color: '#10b981',
+                    fontSize: '0.95rem',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {endDate.toLocaleDateString('fr-FR', { 
+                      day: '2-digit', 
+                      month: '2-digit', 
+                      year: 'numeric' 
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Résumé jours */}
+              <div style={{
+                marginTop: '15px',
+                padding: '12px',
+                background: theme.hoverBg,
+                borderRadius: '8px',
+                display: 'flex',
+                justifyContent: 'space-around',
+                textAlign: 'center'
+              }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '4px' }}>
+                    Jours calendaires
+                  </div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.text }}>
+                    {totalDays}
+                  </div>
+                </div>
+                <div style={{ width: '1px', background: theme.cardBorder }}></div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '4px' }}>
+                    Jours ouvrables
+                  </div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#10b981' }}>
+                    {workingDays}
+                  </div>
+                </div>
+                <div style={{ width: '1px', background: theme.cardBorder }}></div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '4px' }}>
+                    Weekends
+                  </div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.textTertiary }}>
+                    {totalDays - workingDays}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div style={{
