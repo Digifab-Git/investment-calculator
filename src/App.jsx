@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, ResponsiveContainer } from 'recharts';
 
-// 🔐 CONFIGURATION LOGIN - Changez ces valeurs !
-const CREDENTIALS = {
-  username: 'admin',
-  password: 'invest2024'
-};
-
 export default function InvestmentCalculator() {
   const funds = [
     { name: 'Health Sciences Opportunities Fund', rate: 0.008, minimum: 100000, duration: 10, color: '#6366f1' },
@@ -36,9 +30,6 @@ export default function InvestmentCalculator() {
   };
 
   // États
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [loginError, setLoginError] = useState('');
   const [selectedFund, setSelectedFund] = useState(funds[0]);
   const [amount, setAmount] = useState(selectedFund.minimum);
   const [darkMode, setDarkMode] = useState(true);
@@ -79,41 +70,32 @@ export default function InvestmentCalculator() {
   };
 
   // Vérifier auth au chargement
-  useEffect(() => {
-    const auth = localStorage.getItem('isAuthenticated');
-    if (auth === 'true') setIsAuthenticated(true);
-  }, []);
-
   // Sauvegarder/charger simulations (avec debounce pour éviter rafraîchissement)
   useEffect(() => {
-    if (isAuthenticated) {
-      // Utiliser un délai pour éviter de sauvegarder à chaque mouvement du slider
-      const timeoutId = setTimeout(() => {
-        localStorage.setItem('lastSimulation', JSON.stringify({
-          fund: selectedFund.name,
-          amount: amount,
-          date: new Date().toISOString()
-        }));
-      }, 500); // Attendre 500ms après le dernier changement
+    // Utiliser un délai pour éviter de sauvegarder à chaque mouvement du slider
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem('lastSimulation', JSON.stringify({
+        fund: selectedFund.name,
+        amount: amount,
+        date: new Date().toISOString()
+      }));
+    }, 500); // Attendre 500ms après le dernier changement
 
-      // Nettoyer le timeout si l'utilisateur continue à bouger le slider
-      return () => clearTimeout(timeoutId);
-    }
-  }, [selectedFund, amount, isAuthenticated]);
+    // Nettoyer le timeout si l'utilisateur continue à bouger le slider
+    return () => clearTimeout(timeoutId);
+  }, [selectedFund, amount]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      const last = localStorage.getItem('lastSimulation');
-      if (last) {
-        const data = JSON.parse(last);
-        const fund = funds.find(f => f.name === data.fund);
-        if (fund) setSelectedFund(fund);
-        if (data.amount) setAmount(data.amount);
-      }
-      const history = localStorage.getItem('simulationHistory');
-      if (history) setSavedSimulations(JSON.parse(history));
+    const last = localStorage.getItem('lastSimulation');
+    if (last) {
+      const data = JSON.parse(last);
+      const fund = funds.find(f => f.name === data.fund);
+      if (fund) setSelectedFund(fund);
+      if (data.amount) setAmount(data.amount);
     }
-  }, [isAuthenticated]);
+    const history = localStorage.getItem('simulationHistory');
+    if (history) setSavedSimulations(JSON.parse(history));
+  }, []);
 
   useEffect(() => {
     setAmount(selectedFund.minimum);
@@ -128,22 +110,6 @@ export default function InvestmentCalculator() {
   }, []);
 
   // Fonction de login
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (loginForm.username === CREDENTIALS.username && loginForm.password === CREDENTIALS.password) {
-      setIsAuthenticated(true);
-      localStorage.setItem('isAuthenticated', 'true');
-      setLoginError('');
-    } else {
-      setLoginError('Identifiants incorrects');
-    }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('isAuthenticated');
-  };
-
   // Calculs
   const totalDays = selectedFund.duration * 30;
   const workingDays = Math.round(totalDays * 5 / 7);
@@ -285,155 +251,6 @@ export default function InvestmentCalculator() {
   );
 
   // PAGE DE LOGIN
-  if (!isAuthenticated) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: '"DM Sans", system-ui, sans-serif',
-        padding: '20px'
-      }}>
-        <div style={{
-          background: 'rgba(30, 41, 59, 0.9)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '20px',
-          padding: '40px',
-          border: '1px solid rgba(148, 163, 184, 0.1)',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
-          maxWidth: '400px',
-          width: '100%',
-          animation: 'fadeInUp 0.8s ease-out'
-        }}>
-          <h1 style={{
-            fontSize: '2rem',
-            fontWeight: '800',
-            background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            marginBottom: '10px',
-            textAlign: 'center'
-          }}>
-            🔐 Connexion Sécurisée
-          </h1>
-          <p style={{
-            color: '#94a3b8',
-            textAlign: 'center',
-            marginBottom: '30px',
-            fontSize: '0.95rem'
-          }}>
-            Draham Invest Calculator
-          </p>
-
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '0.9rem',
-                fontWeight: '600',
-                marginBottom: '8px',
-                color: '#cbd5e1'
-              }}>
-                Nom d'utilisateur
-              </label>
-              <input
-                type="text"
-                value={loginForm.username}
-                onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                placeholder="Entrez votre identifiant"
-                required
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '10px',
-                  border: '2px solid rgba(148, 163, 184, 0.2)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#f1f5f9',
-                  fontSize: '1rem',
-                  outline: 'none'
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '25px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '0.9rem',
-                fontWeight: '600',
-                marginBottom: '8px',
-                color: '#cbd5e1'
-              }}>
-                Mot de passe
-              </label>
-              <input
-                type="password"
-                value={loginForm.password}
-                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                placeholder="Entrez votre mot de passe"
-                required
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '10px',
-                  border: '2px solid rgba(148, 163, 184, 0.2)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#f1f5f9',
-                  fontSize: '1rem',
-                  outline: 'none'
-                }}
-              />
-            </div>
-
-            {loginError && (
-              <div style={{
-                padding: '10px',
-                borderRadius: '8px',
-                background: 'rgba(239, 68, 68, 0.15)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                color: '#f87171',
-                fontSize: '0.9rem',
-                marginBottom: '20px',
-                textAlign: 'center'
-              }}>
-                ⚠️ {loginError}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: '14px',
-                borderRadius: '10px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)',
-                color: 'white',
-                fontSize: '1rem',
-                fontWeight: '700',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              Se connecter
-            </button>
-          </form>
-        </div>
-
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
-          @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
   // PAGE PRINCIPALE
   return (
     <div style={{
@@ -513,24 +330,6 @@ export default function InvestmentCalculator() {
               }}
             >
               {darkMode ? '☀️' : '🌙'}
-            </button>
-
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '10px 18px',
-                borderRadius: '12px',
-                border: `2px solid rgba(239, 68, 68, 0.3)`,
-                background: 'rgba(239, 68, 68, 0.15)',
-                color: '#f87171',
-                fontSize: '0.9rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                fontWeight: '600',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              🚪 Déconnexion
             </button>
           </div>
         </div>
@@ -692,18 +491,20 @@ export default function InvestmentCalculator() {
               
               {/* Input manuel */}
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={targetGain}
                 onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === '' || val === '0') {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  if (val === '') {
                     setTargetGain(1000);
                   } else {
-                    setTargetGain(Number(val));
+                    const num = parseInt(val, 10);
+                    if (!isNaN(num)) {
+                      setTargetGain(num);
+                    }
                   }
                 }}
-                min={1000}
-                step={5000}
                 placeholder="Saisissez un montant..."
                 style={{
                   width: '100%',
@@ -1015,18 +816,21 @@ export default function InvestmentCalculator() {
 
               {/* Input numérique */}
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={amount}
                 onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === '' || val === '0') {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  if (val === '') {
                     setAmount(selectedFund.minimum);
                   } else {
-                    setAmount(Number(val));
+                    const num = parseInt(val, 10);
+                    if (!isNaN(num)) {
+                      setAmount(num);
+                    }
                   }
                 }}
-                min={selectedFund.minimum}
-                step={1000}
+                placeholder={`Min: ${formatCurrency(selectedFund.minimum)}`}
                 style={{
                   width: '100%',
                   padding: '14px',
