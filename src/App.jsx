@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, ResponsiveContainer } from 'recharts';
 
 export default function InvestmentCalculator() {
@@ -41,6 +41,10 @@ export default function InvestmentCalculator() {
   const [savedSimulations, setSavedSimulations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
+  
+  // Ref pour éviter le chargement localStorage pendant la saisie
+  const isInitialMount = useRef(true);
+  const inputRef = useRef(null);
 
   // Thèmes
   const theme = darkMode ? {
@@ -86,15 +90,18 @@ export default function InvestmentCalculator() {
   }, [selectedFund, amount]);
 
   useEffect(() => {
-    const last = localStorage.getItem('lastSimulation');
-    if (last) {
-      const data = JSON.parse(last);
-      const fund = funds.find(f => f.name === data.fund);
-      if (fund) setSelectedFund(fund);
-      if (data.amount) setAmount(data.amount);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      const last = localStorage.getItem('lastSimulation');
+      if (last) {
+        const data = JSON.parse(last);
+        const fund = funds.find(f => f.name === data.fund);
+        if (fund) setSelectedFund(fund);
+        if (data.amount) setAmount(data.amount);
+      }
+      const history = localStorage.getItem('simulationHistory');
+      if (history) setSavedSimulations(JSON.parse(history));
     }
-    const history = localStorage.getItem('simulationHistory');
-    if (history) setSavedSimulations(JSON.parse(history));
   }, []);
 
   useEffect(() => {
@@ -820,15 +827,17 @@ export default function InvestmentCalculator() {
                 className="investment-slider"
               />
 
-              {/* Input numérique */}
+              {/* Input numérique - Non contrôlé pour éviter perte focus */}
               <input
+                ref={inputRef}
                 type="text"
                 inputMode="numeric"
-                value={amount}
+                key={`amount-${selectedFund.name}`}
+                defaultValue={amount}
                 onChange={(e) => {
                   const val = e.target.value.replace(/[^0-9]/g, '');
                   if (val === '') {
-                    setAmount(0); // Permettre temporairement 0 pendant la saisie
+                    setAmount(0);
                   } else {
                     const num = parseInt(val, 10);
                     if (!isNaN(num)) {
@@ -836,10 +845,12 @@ export default function InvestmentCalculator() {
                     }
                   }
                 }}
-                onBlur={(e) => {
-                  // Au blur, si le montant est invalide, remettre le minimum
+                onBlur={() => {
                   if (amount < selectedFund.minimum) {
                     setAmount(selectedFund.minimum);
+                    if (inputRef.current) {
+                      inputRef.current.value = selectedFund.minimum;
+                    }
                   }
                 }}
                 placeholder={`Min: ${formatCurrency(selectedFund.minimum)}`}
