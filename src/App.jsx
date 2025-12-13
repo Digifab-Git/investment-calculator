@@ -4,7 +4,7 @@ import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, Responsi
 // 🔐 CONFIGURATION LOGIN - Changez ces valeurs !
 const CREDENTIALS = {
   username: 'admin',
-  password: 'investdraham'
+  password: 'invest2024'
 };
 
 export default function InvestmentCalculator() {
@@ -41,7 +41,6 @@ export default function InvestmentCalculator() {
   const [loginError, setLoginError] = useState('');
   const [selectedFund, setSelectedFund] = useState(funds[0]);
   const [amount, setAmount] = useState(selectedFund.minimum);
-  const [activeView, setActiveView] = useState('compound');
   const [darkMode, setDarkMode] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
@@ -453,65 +452,6 @@ export default function InvestmentCalculator() {
           animation: 'fadeInDown 0.8s ease-out',
           position: 'relative'
         }}>
-          <div style={{
-            position: 'absolute',
-            top: '0',
-            right: '0',
-            display: 'flex',
-            gap: '10px',
-            flexWrap: 'wrap'
-          }}>
-            <button
-              onClick={() => setShowHelp(!showHelp)}
-              style={{
-                padding: '12px 20px',
-                borderRadius: '12px',
-                border: `2px solid ${theme.cardBorder}`,
-                background: theme.cardBg,
-                color: theme.text,
-                fontSize: '1rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                fontWeight: '600'
-              }}
-            >
-              ❓ Aide
-            </button>
-
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              style={{
-                padding: '12px 20px',
-                borderRadius: '12px',
-                border: `2px solid ${theme.cardBorder}`,
-                background: theme.cardBg,
-                color: theme.text,
-                fontSize: '1.2rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
-
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '12px 20px',
-                borderRadius: '12px',
-                border: `2px solid rgba(239, 68, 68, 0.3)`,
-                background: 'rgba(239, 68, 68, 0.15)',
-                color: '#f87171',
-                fontSize: '1rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                fontWeight: '600'
-              }}
-            >
-              🚪 Déconnexion
-            </button>
-          </div>
-
           <h1 style={{
             fontSize: '3rem',
             fontWeight: '800',
@@ -526,10 +466,73 @@ export default function InvestmentCalculator() {
           <p style={{
             fontSize: '1.1rem',
             color: theme.textSecondary,
-            fontWeight: '400'
+            fontWeight: '400',
+            marginBottom: '20px'
           }}>
             Simulez vos opportunités d'investissement avec 3 vues stratégiques
           </p>
+
+          {/* Boutons - Centrés sous le titre pour meilleur affichage mobile */}
+          <div style={{
+            display: 'flex',
+            gap: '10px',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <button
+              onClick={() => setShowHelp(!showHelp)}
+              style={{
+                padding: '10px 18px',
+                borderRadius: '12px',
+                border: `2px solid ${theme.cardBorder}`,
+                background: theme.cardBg,
+                color: theme.text,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontWeight: '600',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              ❓ Aide
+            </button>
+
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              style={{
+                padding: '10px 18px',
+                borderRadius: '12px',
+                border: `2px solid ${theme.cardBorder}`,
+                background: theme.cardBg,
+                color: theme.text,
+                fontSize: '1.2rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                minWidth: '50px'
+              }}
+            >
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '10px 18px',
+                borderRadius: '12px',
+                border: `2px solid rgba(239, 68, 68, 0.3)`,
+                background: 'rgba(239, 68, 68, 0.15)',
+                color: '#f87171',
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontWeight: '600',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              🚪 Déconnexion
+            </button>
+          </div>
         </div>
 
         {/* Panel d'aide */}
@@ -968,7 +971,7 @@ export default function InvestmentCalculator() {
                 Montant à investir : {formatCurrency(amount)}
               </label>
               
-              {/* Slider */}
+              {/* Slider avec styles améliorés pour mobile */}
               <input
                 type="range"
                 min={selectedFund.minimum}
@@ -976,7 +979,18 @@ export default function InvestmentCalculator() {
                 step={selectedFund.minimum >= 10000 ? 1000 : 100}
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                style={{ width: '100%', marginBottom: '15px' }}
+                style={{
+                  width: '100%',
+                  marginBottom: '15px',
+                  height: '8px',
+                  borderRadius: '5px',
+                  outline: 'none',
+                  WebkitAppearance: 'none',
+                  appearance: 'none',
+                  background: `linear-gradient(to right, #6366f1 0%, #6366f1 ${((amount - selectedFund.minimum) / (500000 - selectedFund.minimum)) * 100}%, ${theme.inputBg} ${((amount - selectedFund.minimum) / (500000 - selectedFund.minimum)) * 100}%, ${theme.inputBg} 100%)`,
+                  cursor: 'pointer',
+                  touchAction: 'none'
+                }}
               />
 
               {/* Input numérique */}
@@ -1095,29 +1109,13 @@ export default function InvestmentCalculator() {
                   ].map((view, idx) => (
                     <div
                       key={view.label}
-                      onClick={() => setActiveView(view.key)}
                       style={{
                         padding: '18px',
-                        background: activeView === view.key
-                          ? `linear-gradient(135deg, ${view.color}20, ${view.color}10)` 
-                          : theme.hoverBg,
+                        background: `linear-gradient(135deg, ${view.color}20, ${view.color}10)`,
                         borderRadius: '14px',
-                        border: activeView === view.key
-                          ? `2px solid ${view.color}`
-                          : `2px solid ${theme.cardBorder}`,
-                        cursor: 'pointer',
+                        border: `2px solid ${view.color}`,
                         transition: 'all 0.3s ease',
                         animation: hasAnimated ? 'none' : `fadeInRight 0.6s ease-out ${0.1 * idx}s backwards`
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateX(4px)';
-                        e.currentTarget.style.borderColor = view.color;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateX(0)';
-                        if (activeView !== view.key) {
-                          e.currentTarget.style.borderColor = theme.cardBorder;
-                        }
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
@@ -1278,30 +1276,62 @@ export default function InvestmentCalculator() {
         input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 20px;
-          height: 20px;
+          width: 24px;
+          height: 24px;
           background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
           cursor: pointer;
           border-radius: 50%;
           box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:active {
+          transform: scale(1.2);
+          box-shadow: 0 4px 16px rgba(99, 102, 241, 0.8);
         }
         
         input[type="range"]::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
+          width: 24px;
+          height: 24px;
           background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
           cursor: pointer;
           border-radius: 50%;
           border: none;
           box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        input[type="range"]::-moz-range-thumb:hover {
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+        }
+        
+        input[type="range"]::-moz-range-thumb:active {
+          transform: scale(1.2);
+          box-shadow: 0 4px 16px rgba(99, 102, 241, 0.8);
         }
 
+        /* Amélioration pour mobile */
         @media (max-width: 768px) {
           h1 { font-size: 2rem !important; }
-          .header-buttons { 
-            position: relative !important;
-            margin-top: 20px;
-            justify-content: center;
+          
+          input[type="range"]::-webkit-slider-thumb {
+            width: 28px;
+            height: 28px;
+          }
+          
+          input[type="range"]::-moz-range-thumb {
+            width: 28px;
+            height: 28px;
+          }
+          
+          input[type="range"] {
+            height: 10px !important;
           }
         }
       `}</style>
