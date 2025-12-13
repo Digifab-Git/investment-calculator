@@ -1017,7 +1017,14 @@ export default function InvestmentCalculator() {
               <input
                 type="number"
                 value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '' || val === '0') {
+                    setAmount(selectedFund.minimum);
+                  } else {
+                    setAmount(Number(val));
+                  }
+                }}
                 min={selectedFund.minimum}
                 step={1000}
                 style={{
@@ -1284,79 +1291,18 @@ export default function InvestmentCalculator() {
         
         * { box-sizing: border-box; }
         
-        /* Slider ultra-simplifié pour fluidité maximale */
+        /* Slider MINIMAL - Quasi-natif pour éviter bugs */
         .investment-slider {
-          -webkit-appearance: none;
-          appearance: none;
           width: 100%;
-          height: 8px;
-          background: ${darkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(203, 213, 225, 0.4)'};
-          outline: none;
-          border-radius: 5px;
+          height: 6px;
           margin: 15px 0;
           cursor: pointer;
         }
         
-        .investment-slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 26px;
-          height: 26px;
-          background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-          cursor: grab;
-          border-radius: 50%;
-          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
-          border: 3px solid white;
-        }
-        
-        .investment-slider::-webkit-slider-thumb:active {
-          cursor: grabbing;
-          transform: scale(1.1);
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.7);
-        }
-        
-        .investment-slider::-moz-range-thumb {
-          width: 26px;
-          height: 26px;
-          background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-          cursor: grab;
-          border-radius: 50%;
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
-        }
-        
-        .investment-slider::-moz-range-thumb:active {
-          cursor: grabbing;
-          transform: scale(1.1);
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.7);
-        }
-        
-        .investment-slider::-webkit-slider-runnable-track {
-          height: 8px;
-          background: transparent;
-        }
-        
-        .investment-slider::-moz-range-track {
-          height: 8px;
-          background: transparent;
-        }
-
-        /* Amélioration pour mobile */
+        /* Mobile : Curseur plus gros */
         @media (max-width: 768px) {
-          h1 { font-size: 2rem !important; }
-          
           .investment-slider {
-            height: 10px !important;
-          }
-          
-          .investment-slider::-webkit-slider-thumb {
-            width: 32px;
-            height: 32px;
-          }
-          
-          .investment-slider::-moz-range-thumb {
-            width: 32px;
-            height: 32px;
+            height: 8px;
           }
         }
       `}</style>
