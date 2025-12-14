@@ -318,7 +318,7 @@ export default function InvestmentCalculator() {
             fontWeight: '400',
             marginBottom: '20px'
           }}>
-            Simulez vos opportunités d'investissement avec 3 vues stratégiques
+            Choisissez votre stratégie : Revenus immédiats, Croissance ou Capitalisation
           </p>
 
           {/* Boutons - Centrés sous le titre pour meilleur affichage mobile */}
