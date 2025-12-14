@@ -866,107 +866,246 @@ export default function InvestmentCalculator() {
               </div>
             </div>
 
-            {/* Slider */}
+            {/* Slider avec flèches */}
             <div style={{ marginBottom: '20px' }}>
-              <input
-                type="range"
-                min={selectedFund.minimum}
-                max={500000}
-                step={selectedFund.minimum >= 10000 ? 1000 : 100}
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                className="investment-slider"
-              />
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '15px',
+                marginBottom: '10px'
+              }}>
+                {/* Flèche gauche */}
+                <button
+                  onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))}
+                  style={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    border: `2px solid ${theme.cardBorder}`,
+                    background: theme.cardBg,
+                    color: theme.text,
+                    fontSize: '1.5rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  ◄
+                </button>
+
+                {/* Slider */}
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="range"
+                    min={selectedFund.minimum}
+                    max={500000}
+                    step={1000}
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    className="investment-slider"
+                  />
+                </div>
+
+                {/* Flèche droite */}
+                <button
+                  onClick={() => setAmount(Math.min(500000, amount + 1000))}
+                  style={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    border: '2px solid rgba(16, 185, 129, 0.3)',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    color: '#10b981',
+                    fontSize: '1.5rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  ►
+                </button>
+              </div>
             </div>
 
-            {/* Boutons Stepper */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '10px',
-              marginBottom: '15px'
-            }}>
-              <button
-                onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 10000))}
-                style={{
-                  padding: '12px 20px',
-                  borderRadius: '10px',
-                  border: `2px solid ${theme.cardBorder}`,
-                  background: theme.cardBg,
-                  color: theme.text,
-                  fontSize: '1rem',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = theme.hoverBg}
-                onMouseLeave={(e) => e.currentTarget.style.background = theme.cardBg}
-              >
-                − $10,000
-              </button>
-              
-              <button
-                onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))}
-                style={{
-                  padding: '12px 20px',
-                  borderRadius: '10px',
-                  border: `2px solid ${theme.cardBorder}`,
-                  background: theme.cardBg,
-                  color: theme.text,
-                  fontSize: '1rem',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = theme.hoverBg}
-                onMouseLeave={(e) => e.currentTarget.style.background = theme.cardBg}
-              >
-                − $1,000
-              </button>
-              
-              <button
-                onClick={() => setAmount(Math.min(500000, amount + 1000))}
-                style={{
-                  padding: '12px 20px',
-                  borderRadius: '10px',
-                  border: '2px solid rgba(16, 185, 129, 0.3)',
-                  background: 'rgba(16, 185, 129, 0.1)',
-                  color: '#10b981',
-                  fontSize: '1rem',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'}
-              >
-                + $1,000
-              </button>
-              
-              <button
-                onClick={() => setAmount(Math.min(500000, amount + 10000))}
-                style={{
-                  padding: '12px 20px',
-                  borderRadius: '10px',
-                  border: '2px solid rgba(16, 185, 129, 0.3)',
-                  background: 'rgba(16, 185, 129, 0.1)',
-                  color: '#10b981',
-                  fontSize: '1rem',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'}
-              >
-                + $10,000
-              </button>
+            {/* Ajustement rapide avec steppers */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                color: theme.textSecondary,
+                marginBottom: '10px'
+              }}>
+                ⚡ Ajustement rapide
+              </div>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '8px'
+              }}>
+                <button
+                  onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 10000))}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: `2px solid ${theme.cardBorder}`,
+                    background: theme.cardBg,
+                    color: theme.text,
+                    fontSize: '0.9rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = theme.hoverBg}
+                  onMouseLeave={(e) => e.currentTarget.style.background = theme.cardBg}
+                >
+                  −10K
+                </button>
+                
+                <button
+                  onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: `2px solid ${theme.cardBorder}`,
+                    background: theme.cardBg,
+                    color: theme.text,
+                    fontSize: '0.9rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = theme.hoverBg}
+                  onMouseLeave={(e) => e.currentTarget.style.background = theme.cardBg}
+                >
+                  −1K
+                </button>
+                
+                <button
+                  onClick={() => setAmount(Math.min(500000, amount + 1000))}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '2px solid rgba(16, 185, 129, 0.3)',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    color: '#10b981',
+                    fontSize: '0.9rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'}
+                >
+                  +1K
+                </button>
+                
+                <button
+                  onClick={() => setAmount(Math.min(500000, amount + 10000))}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '2px solid rgba(16, 185, 129, 0.3)',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    color: '#10b981',
+                    fontSize: '0.9rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'}
+                >
+                  +10K
+                </button>
+              </div>
             </div>
 
-            {/* Boutons Reset */}
+            {/* Suggestions intelligentes */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                color: theme.textSecondary,
+                marginBottom: '10px'
+              }}>
+                💡 Suggestions rapides
+              </div>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '8px'
+              }}>
+                <button
+                  onClick={() => setAmount(100000)}
+                  disabled={selectedFund.minimum > 100000}
+                  style={{
+                    padding: '12px 8px',
+                    borderRadius: '8px',
+                    border: amount === 100000 ? '2px solid #6366f1' : `2px solid ${theme.cardBorder}`,
+                    background: amount === 100000 ? 'rgba(99, 102, 241, 0.1)' : theme.inputBg,
+                    color: selectedFund.minimum > 100000 ? theme.textTertiary : (amount === 100000 ? '#6366f1' : theme.text),
+                    fontSize: '0.95rem',
+                    fontWeight: '700',
+                    cursor: selectedFund.minimum > 100000 ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.3s ease',
+                    opacity: selectedFund.minimum > 100000 ? 0.5 : 1
+                  }}
+                >
+                  $100K
+                </button>
+                
+                <button
+                  onClick={() => setAmount(250000)}
+                  disabled={selectedFund.minimum > 250000}
+                  style={{
+                    padding: '12px 8px',
+                    borderRadius: '8px',
+                    border: amount === 250000 ? '2px solid #6366f1' : `2px solid ${theme.cardBorder}`,
+                    background: amount === 250000 ? 'rgba(99, 102, 241, 0.1)' : theme.inputBg,
+                    color: selectedFund.minimum > 250000 ? theme.textTertiary : (amount === 250000 ? '#6366f1' : theme.text),
+                    fontSize: '0.95rem',
+                    fontWeight: '700',
+                    cursor: selectedFund.minimum > 250000 ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.3s ease',
+                    opacity: selectedFund.minimum > 250000 ? 0.5 : 1
+                  }}
+                >
+                  $250K
+                </button>
+                
+                <button
+                  onClick={() => setAmount(500000)}
+                  style={{
+                    padding: '12px 8px',
+                    borderRadius: '8px',
+                    border: amount === 500000 ? '2px solid #6366f1' : `2px solid ${theme.cardBorder}`,
+                    background: amount === 500000 ? 'rgba(99, 102, 241, 0.1)' : theme.inputBg,
+                    color: amount === 500000 ? '#6366f1' : theme.text,
+                    fontSize: '0.95rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  $500K
+                </button>
+              </div>
+            </div>
+
+            {/* Raccourcis */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
+              gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '10px'
             }}>
               <button
@@ -984,6 +1123,23 @@ export default function InvestmentCalculator() {
                 }}
               >
                 ↺ Minimum
+              </button>
+              
+              <button
+                onClick={() => setAmount(Math.round(amount / 10000) * 10000)}
+                style={{
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: `1px solid ${theme.cardBorder}`,
+                  background: theme.inputBg,
+                  color: theme.textSecondary,
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                ⌀ Arrondir
               </button>
               
               <button
