@@ -224,9 +224,9 @@ export default function InvestmentCalculator() {
   const compareCompoundGain = compareCompoundView - amount;
   const compareRoi = ((compareCompoundView - amount) / amount) * 100;
 
-  // Calcul mode objectif
+  // Calcul mode objectif (utilise le taux Growth/Compound)
   const calculateRequiredInvestment = () => {
-    return Math.ceil(targetGain / (Math.pow(1 + selectedFund.rate, workingDays) - 1));
+    return Math.ceil(targetGain / (Math.pow(1 + selectedFund.rateGrowth, workingDays) - 1));
   };
 
   // Sauvegarder simulation
@@ -259,9 +259,9 @@ export default function InvestmentCalculator() {
         workingDayCount++;
         data.push({
           day: workingDayCount,
-          income: amount,
-          growth: amount + (dailyGain * workingDayCount),
-          compound: amount * Math.pow(1 + selectedFund.rate, workingDayCount)
+          income: amount + (dailyGainIncome * workingDayCount),
+          growth: amount + (dailyGainGrowth * workingDayCount),
+          compound: amount * Math.pow(1 + selectedFund.rateGrowth, workingDayCount)
         });
       }
     }
@@ -635,7 +635,7 @@ export default function InvestmentCalculator() {
                 {formatCurrency(calculateRequiredInvestment())}
               </div>
               <div style={{ fontSize: '0.85rem', color: theme.textSecondary, marginTop: '8px' }}>
-                avec {selectedFund.name} ({formatPercent(selectedFund.rate * 100)}/jour)
+                avec {selectedFund.name} ({formatPercent(selectedFund.rateGrowth * 100)}/jour avec réinvestissement)
               </div>
             </div>
           </Card>
@@ -855,8 +855,11 @@ export default function InvestmentCalculator() {
                   Taux journalier
                   <InfoTooltip text="Taux d'intérêt appliqué chaque jour ouvrable" />
                 </div>
-                <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#a78bfa' }}>
-                  {formatPercent(selectedFund.rate * 100)}
+                <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#a78bfa' }}>
+                  {formatPercent(selectedFund.rateIncome * 100)} (Income)
+                </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#10b981', marginTop: '5px' }}>
+                  {formatPercent(selectedFund.rateGrowth * 100)} (Growth/Compound)
                 </div>
               </div>
               <div style={{
@@ -1454,6 +1457,13 @@ export default function InvestmentCalculator() {
           .investment-slider {
             height: 8px;
           }
+        }
+        
+        /* Force dark mode global */
+        body {
+          margin: 0;
+          padding: 0;
+          background: ${darkMode ? '#0f172a' : '#f8fafc'} !important;
         }
       `}</style>
     </div>
