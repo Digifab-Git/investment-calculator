@@ -3,9 +3,46 @@ import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, Responsi
 
 export default function InvestmentCalculator() {
   const funds = [
-    { name: 'Health Sciences Opportunities Fund', rate: 0.008, minimum: 100000, duration: 10, color: '#6366f1' },
-    { name: 'Energy and Natural Resources Fund', rate: 0.006, minimum: 10000, duration: 10, color: '#10b981' },
-    { name: 'Technology Opportunities Fund', rate: 0.005, minimum: 500, duration: 12, color: '#f59e0b' }
+    { 
+      name: 'Health Sciences Opportunities Fund', 
+      rateIncome: 0.008, 
+      rateGrowth: 0.0085, 
+      minimum: 100000, 
+      duration: 10, 
+      color: '#6366f1' 
+    },
+    { 
+      name: 'Energy and Natural Resources Fund', 
+      rateIncome: 0.006, 
+      rateGrowth: 0.0065, 
+      minimum: 10000, 
+      duration: 10, 
+      color: '#10b981' 
+    },
+    { 
+      name: 'Technology Opportunities Fund', 
+      rateIncome: 0.005, 
+      rateGrowth: 0.0055, 
+      minimum: 500, 
+      duration: 12, 
+      color: '#f59e0b' 
+    },
+    { 
+      name: 'Fonds pour les Marchés Émergents', 
+      rateIncome: 0.009, 
+      rateGrowth: 0.010, 
+      minimum: 250000, 
+      duration: 10, 
+      color: '#ec4899' 
+    },
+    { 
+      name: 'Fonds International LGMCORP', 
+      rateIncome: 0.012, 
+      rateGrowth: 0.0125, 
+      minimum: 500000, 
+      duration: 10, 
+      color: '#8b5cf6' 
+    }
   ];
 
   const viewDescriptions = {
@@ -13,19 +50,22 @@ export default function InvestmentCalculator() {
       title: '💰 Income View',
       desc: 'Vous retirez les gains chaque jour ouvrable. Votre capital initial reste constant. Idéal pour un revenu passif régulier sans toucher à votre capital.',
       icon: '💰',
-      color: '#ef4444'
+      color: '#ef4444',
+      rateLabel: (fund) => `Taux : ${(fund.rateIncome * 100).toFixed(2)}%/jour`
     },
     growth: {
       title: '📈 Growth View',
-      desc: 'Les gains s\'accumulent sans être réinvestis. Croissance linéaire prévisible. Parfait pour épargner progressivement sans prendre de risque supplémentaire.',
+      desc: 'Les gains s\'accumulent et sont réinvestis. Croissance optimisée grâce au réinvestissement quotidien. Plus rentable que Income View !',
       icon: '📈',
-      color: '#3b82f6'
+      color: '#3b82f6',
+      rateLabel: (fund) => `Taux : ${(fund.rateGrowth * 100).toFixed(2)}%/jour`
     },
     compound: {
       title: '🚀 Compound View',
       desc: 'Les gains sont automatiquement réinvestis chaque jour. Croissance exponentielle maximale grâce aux intérêts composés. Le meilleur rendement à long terme !',
       icon: '🚀',
-      color: '#10b981'
+      color: '#10b981',
+      rateLabel: (fund) => `Taux : ${(fund.rateGrowth * 100).toFixed(2)}%/jour + composés`
     }
   };
 
@@ -157,21 +197,30 @@ export default function InvestmentCalculator() {
   const endDate = calculateEndDate(startDate, selectedFund.duration);
   const totalDays = Math.floor((endDate - new Date(startDate)) / (1000 * 60 * 60 * 24));
   const workingDays = calculateWorkingDaysBetweenDates(startDate, endDate);
-  const dailyGain = amount * selectedFund.rate;
-  const incomeView = amount + (dailyGain * workingDays);
-  const growthView = amount + (dailyGain * workingDays);
-  const compoundView = amount * Math.pow(1 + selectedFund.rate, workingDays);
+  
+  // Calculs pour chaque vue avec les bons taux
+  const dailyGainIncome = amount * selectedFund.rateIncome;
+  const dailyGainGrowth = amount * selectedFund.rateGrowth;
+  
+  const incomeView = amount + (dailyGainIncome * workingDays);
+  const growthView = amount + (dailyGainGrowth * workingDays);
+  const compoundView = amount * Math.pow(1 + selectedFund.rateGrowth, workingDays);
+  
   const incomeGain = incomeView - amount;
+  const growthGain = growthView - amount;
   const compoundGain = compoundView - amount;
   const roi = ((compoundView - amount) / amount) * 100;
   const isValid = amount >= selectedFund.minimum;
 
 
   // Calculs comparaison
-  const compareTotalDays = compareWith.duration * 30;
-  const compareWorkingDays = Math.round(compareTotalDays * 5 / 7);
-  const compareDailyGain = amount * compareWith.rate;
-  const compareCompoundView = amount * Math.pow(1 + compareWith.rate, compareWorkingDays);
+  const compareEndDate = calculateEndDate(startDate, compareWith.duration);
+  const compareWorkingDays = calculateWorkingDaysBetweenDates(startDate, compareEndDate);
+  const compareDailyGainIncome = amount * compareWith.rateIncome;
+  const compareDailyGainGrowth = amount * compareWith.rateGrowth;
+  const compareIncomeView = amount + (compareDailyGainIncome * compareWorkingDays);
+  const compareGrowthView = amount + (compareDailyGainGrowth * compareWorkingDays);
+  const compareCompoundView = amount * Math.pow(1 + compareWith.rateGrowth, compareWorkingDays);
   const compareCompoundGain = compareCompoundView - amount;
   const compareRoi = ((compareCompoundView - amount) / amount) * 100;
 
@@ -1220,10 +1269,10 @@ export default function InvestmentCalculator() {
                       key: 'growth',
                       label: 'Growth View', 
                       value: growthView, 
-                      gain: incomeGain, 
+                      gain: growthGain, 
                       icon: viewDescriptions.growth.icon, 
                       color: viewDescriptions.growth.color,
-                      desc: 'Accumulation simple'
+                      desc: 'Accumulation avec réinvestissement'
                     },
                     { 
                       key: 'compound',
