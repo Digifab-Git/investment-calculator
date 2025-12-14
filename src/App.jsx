@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, ResponsiveContainer } from 'recharts';
 
 export default function InvestmentCalculator() {
+  // Fonds triés par montant minimum (du plus petit au plus grand)
   const funds = [
-    { name: 'Health Sciences Opportunities Fund', rateIncome: 0.008, rateGrowth: 0.0085, minimum: 100000, duration: 10, color: '#6366f1' },
-    { name: 'Energy and Natural Resources Fund', rateIncome: 0.006, rateGrowth: 0.0065, minimum: 10000, duration: 10, color: '#10b981' },
-    { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, duration: 12, color: '#f59e0b' },
-    { name: 'Fonds pour les Marchés Émergents', rateIncome: 0.009, rateGrowth: 0.010, minimum: 250000, duration: 10, color: '#ec4899' },
-    { name: 'Fonds International LGMCORP', rateIncome: 0.012, rateGrowth: 0.0125, minimum: 500000, duration: 10, color: '#8b5cf6' }
+    { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, duration: 12, color: '#f59e0b', icon: '💻' },
+    { name: 'Energy and Natural Resources Fund', rateIncome: 0.006, rateGrowth: 0.0065, minimum: 10000, duration: 10, color: '#10b981', icon: '⚡' },
+    { name: 'Health Sciences Opportunities Fund', rateIncome: 0.008, rateGrowth: 0.0085, minimum: 100000, duration: 10, color: '#6366f1', icon: '💊' },
+    { name: 'Fonds pour les Marchés Émergents', rateIncome: 0.009, rateGrowth: 0.010, minimum: 250000, duration: 10, color: '#ec4899', icon: '🌍' },
+    { name: 'Fonds International LGMCORP', rateIncome: 0.012, rateGrowth: 0.0125, minimum: 500000, duration: 10, color: '#8b5cf6', icon: '🌟' }
   ];
 
   const viewDescriptions = {
@@ -672,7 +673,7 @@ export default function InvestmentCalculator() {
                     value={fund.name}
                     disabled={fund.name === selectedFund.name}
                   >
-                    {fund.name} {fund.name === selectedFund.name ? '(fonds principal)' : ''}
+                    {fund.icon} {fund.name} {fund.name === selectedFund.name ? '(fonds principal)' : `(Min: $${fund.minimum >= 1000 ? (fund.minimum/1000)+'K' : fund.minimum})`}
                   </option>
                 ))}
               </select>
@@ -686,7 +687,7 @@ export default function InvestmentCalculator() {
                 border: `2px solid ${compoundView > compareCompoundView ? '#10b981' : theme.cardBorder}`
               }}>
                 <div style={{ fontSize: '0.85rem', color: theme.textSecondary, marginBottom: '8px' }}>
-                  {selectedFund.name}
+                  {selectedFund.icon} {selectedFund.name}
                 </div>
                 <div style={{ fontSize: '1.8rem', fontWeight: '800', color: theme.text }}>
                   {formatCurrency(compoundView)}
@@ -776,9 +777,22 @@ export default function InvestmentCalculator() {
                 }}
               >
                 {funds.map(fund => (
-                  <option key={fund.name} value={fund.name}>{fund.name}</option>
+                  <option key={fund.name} value={fund.name}>
+                    {fund.icon} {fund.name} (Min: ${(fund.minimum / 1000).toFixed(fund.minimum < 1000 ? 0 : 0)}K)
+                  </option>
                 ))}
               </select>
+            </div>
+
+            {/* Légende tri */}
+            <div style={{
+              fontSize: '0.75rem',
+              color: theme.textTertiary,
+              fontStyle: 'italic',
+              marginTop: '8px',
+              textAlign: 'center'
+            }}>
+              📊 Triés par montant minimum croissant ($500 → $500K)
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px', marginTop: '20px' }}>
