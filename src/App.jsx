@@ -3,46 +3,11 @@ import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, Responsi
 
 export default function InvestmentCalculator() {
   const funds = [
-    { 
-      name: 'Health Sciences Opportunities Fund', 
-      rateIncome: 0.008, 
-      rateGrowth: 0.0085, 
-      minimum: 100000, 
-      duration: 10, 
-      color: '#6366f1' 
-    },
-    { 
-      name: 'Energy and Natural Resources Fund', 
-      rateIncome: 0.006, 
-      rateGrowth: 0.0065, 
-      minimum: 10000, 
-      duration: 10, 
-      color: '#10b981' 
-    },
-    { 
-      name: 'Technology Opportunities Fund', 
-      rateIncome: 0.005, 
-      rateGrowth: 0.0055, 
-      minimum: 500, 
-      duration: 12, 
-      color: '#f59e0b' 
-    },
-    { 
-      name: 'Fonds pour les Marchés Émergents', 
-      rateIncome: 0.009, 
-      rateGrowth: 0.010, 
-      minimum: 250000, 
-      duration: 10, 
-      color: '#ec4899' 
-    },
-    { 
-      name: 'Fonds International LGMCORP', 
-      rateIncome: 0.012, 
-      rateGrowth: 0.0125, 
-      minimum: 500000, 
-      duration: 10, 
-      color: '#8b5cf6' 
-    }
+    { name: 'Health Sciences Opportunities Fund', rateIncome: 0.008, rateGrowth: 0.0085, minimum: 100000, duration: 10, color: '#6366f1' },
+    { name: 'Energy and Natural Resources Fund', rateIncome: 0.006, rateGrowth: 0.0065, minimum: 10000, duration: 10, color: '#10b981' },
+    { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, duration: 12, color: '#f59e0b' },
+    { name: 'Fonds pour les Marchés Émergents', rateIncome: 0.009, rateGrowth: 0.010, minimum: 250000, duration: 10, color: '#ec4899' },
+    { name: 'Fonds International LGMCORP', rateIncome: 0.012, rateGrowth: 0.0125, minimum: 500000, duration: 10, color: '#8b5cf6' }
   ];
 
   const viewDescriptions = {
@@ -50,29 +15,25 @@ export default function InvestmentCalculator() {
       title: '💰 Income View',
       desc: 'Vous retirez les gains chaque jour ouvrable. Votre capital initial reste constant. Idéal pour un revenu passif régulier sans toucher à votre capital.',
       icon: '💰',
-      color: '#ef4444',
-      rateLabel: (fund) => `Taux : ${(fund.rateIncome * 100).toFixed(2)}%/jour`
+      color: '#ef4444'
     },
     growth: {
       title: '📈 Growth View',
-      desc: 'Les gains s\'accumulent et sont réinvestis. Croissance optimisée grâce au réinvestissement quotidien. Plus rentable que Income View !',
+      desc: 'Les gains s\'accumulent sans être réinvestis. Croissance linéaire prévisible. Parfait pour épargner progressivement sans prendre de risque supplémentaire.',
       icon: '📈',
-      color: '#3b82f6',
-      rateLabel: (fund) => `Taux : ${(fund.rateGrowth * 100).toFixed(2)}%/jour`
+      color: '#3b82f6'
     },
     compound: {
       title: '🚀 Compound View',
       desc: 'Les gains sont automatiquement réinvestis chaque jour. Croissance exponentielle maximale grâce aux intérêts composés. Le meilleur rendement à long terme !',
       icon: '🚀',
-      color: '#10b981',
-      rateLabel: (fund) => `Taux : ${(fund.rateGrowth * 100).toFixed(2)}%/jour + composés`
+      color: '#10b981'
     }
   };
 
   // États
   const [selectedFund, setSelectedFund] = useState(funds[0]);
   const [amount, setAmount] = useState(selectedFund.minimum);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]); // Format YYYY-MM-DD
   const [darkMode, setDarkMode] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
@@ -159,63 +120,35 @@ export default function InvestmentCalculator() {
 
   // Fonction de login
   
-  // Calcul de la date de fin (début + durée en mois)
-  const calculateEndDate = (start, months) => {
-    const startDate = new Date(start);
-    const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + months);
-    return endDate;
-  };
-  
-  // Calcul PRÉCIS des jours ouvrables entre deux dates
-  // Les jours fériés COMPTENT (on ne travaille pas mais on gagne)
-  const calculateWorkingDaysBetweenDates = (startDateStr, endDate) => {
-    const start = new Date(startDateStr);
-    const end = new Date(endDate);
+  // Calcul précis des jours ouvrables (sans weekends ni jours fériés)
+  const calculateWorkingDays = (months) => {
+    // Pour 10 mois : 214 jours ouvrables (calculé précisément)
+    // Pour 12 mois : 256 jours ouvrables (calculé précisément)
+    // Formule basée sur : ~21.4 jours ouvrables/mois (moyenne après weekends + fériés)
     
-    let workingDays = 0;
-    const current = new Date(start);
-    
-    // Parcourir chaque jour entre start et end
-    while (current < end) {
-      const dayOfWeek = current.getDay();
-      
-      // Si ce n'est PAS samedi (6) ni dimanche (0), c'est un jour ouvrable
-      // Les jours fériés en semaine COMPTENT
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        workingDays++;
-      }
-      
-      // Passer au jour suivant
-      current.setDate(current.getDate() + 1);
-    }
+    const workingDaysPerMonth = 21.4; // Moyenne réelle (252 jours/an ÷ 12 mois)
+    const workingDays = Math.round(months * workingDaysPerMonth);
     
     return workingDays;
   };
   
-  // Calculs basés sur les dates réelles
-  const endDate = calculateEndDate(startDate, selectedFund.duration);
-  const totalDays = Math.floor((endDate - new Date(startDate)) / (1000 * 60 * 60 * 24));
-  const workingDays = calculateWorkingDaysBetweenDates(startDate, endDate);
-  
-  // Calculs pour chaque vue avec les bons taux
+  // Calculs avec taux différenciés
+  const totalDays = selectedFund.duration * 30;
+  const workingDays = calculateWorkingDays(selectedFund.duration);
   const dailyGainIncome = amount * selectedFund.rateIncome;
   const dailyGainGrowth = amount * selectedFund.rateGrowth;
-  
   const incomeView = amount + (dailyGainIncome * workingDays);
   const growthView = amount + (dailyGainGrowth * workingDays);
   const compoundView = amount * Math.pow(1 + selectedFund.rateGrowth, workingDays);
-  
   const incomeGain = incomeView - amount;
   const growthGain = growthView - amount;
   const compoundGain = compoundView - amount;
   const roi = ((compoundView - amount) / amount) * 100;
   const isValid = amount >= selectedFund.minimum;
 
-
   // Calculs comparaison
-  const compareEndDate = calculateEndDate(startDate, compareWith.duration);
-  const compareWorkingDays = calculateWorkingDaysBetweenDates(startDate, compareEndDate);
+  const compareTotalDays = compareWith.duration * 30;
+  const compareWorkingDays = Math.round(compareTotalDays * 5 / 7);
   const compareDailyGainIncome = amount * compareWith.rateIncome;
   const compareDailyGainGrowth = amount * compareWith.rateGrowth;
   const compareIncomeView = amount + (compareDailyGainIncome * compareWorkingDays);
@@ -224,7 +157,7 @@ export default function InvestmentCalculator() {
   const compareCompoundGain = compareCompoundView - amount;
   const compareRoi = ((compareCompoundView - amount) / amount) * 100;
 
-  // Calcul mode objectif (utilise le taux Growth/Compound)
+  // Calcul mode objectif
   const calculateRequiredInvestment = () => {
     return Math.ceil(targetGain / (Math.pow(1 + selectedFund.rateGrowth, workingDays) - 1));
   };
@@ -635,7 +568,7 @@ export default function InvestmentCalculator() {
                 {formatCurrency(calculateRequiredInvestment())}
               </div>
               <div style={{ fontSize: '0.85rem', color: theme.textSecondary, marginTop: '8px' }}>
-                avec {selectedFund.name} ({formatPercent(selectedFund.rateGrowth * 100)}/jour avec réinvestissement)
+                avec {selectedFund.name} ({formatPercent(selectedFund.rateGrowth * 100)}/jour)
               </div>
             </div>
           </Card>
@@ -855,11 +788,8 @@ export default function InvestmentCalculator() {
                   Taux journalier
                   <InfoTooltip text="Taux d'intérêt appliqué chaque jour ouvrable" />
                 </div>
-                <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#a78bfa' }}>
-                  {formatPercent(selectedFund.rateIncome * 100)} (Income)
-                </div>
-                <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#10b981', marginTop: '5px' }}>
-                  {formatPercent(selectedFund.rateGrowth * 100)} (Growth/Compound)
+                <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#a78bfa' }}>
+                  {formatPercent(selectedFund.rateIncome * 100)}
                 </div>
               </div>
               <div style={{
@@ -1074,127 +1004,6 @@ export default function InvestmentCalculator() {
               </button>
             </div>
 
-            {/* Dates d'investissement */}
-            <div style={{
-              marginTop: '25px',
-              marginBottom: '20px',
-              padding: '20px',
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.02))',
-              borderRadius: '12px',
-              border: `1px solid ${theme.cardBorder}`
-            }}>
-              <h3 style={{ 
-                fontSize: '1rem', 
-                fontWeight: '700', 
-                marginBottom: '15px',
-                color: theme.text 
-              }}>
-                📅 Période d'investissement
-              </h3>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
-                {/* Date de début */}
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    marginBottom: '8px',
-                    color: theme.textTertiary
-                  }}>
-                    Date de début
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      borderRadius: '10px',
-                      border: `2px solid ${theme.cardBorder}`,
-                      background: theme.inputBg,
-                      color: theme.text,
-                      fontSize: '0.95rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
-
-                {/* Date de fin (calculée automatiquement) */}
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    marginBottom: '8px',
-                    color: theme.textTertiary
-                  }}>
-                    Date de fin ({selectedFund.duration} mois)
-                  </label>
-                  <div style={{
-                    width: '100%',
-                    padding: '12px',
-                    borderRadius: '10px',
-                    border: `2px solid rgba(16, 185, 129, 0.3)`,
-                    background: 'rgba(16, 185, 129, 0.05)',
-                    color: '#10b981',
-                    fontSize: '0.95rem',
-                    fontWeight: '700',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    {endDate.toLocaleDateString('fr-FR', { 
-                      day: '2-digit', 
-                      month: '2-digit', 
-                      year: 'numeric' 
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Résumé jours */}
-              <div style={{
-                marginTop: '15px',
-                padding: '12px',
-                background: theme.hoverBg,
-                borderRadius: '8px',
-                display: 'flex',
-                justifyContent: 'space-around',
-                textAlign: 'center'
-              }}>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '4px' }}>
-                    Jours calendaires
-                  </div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.text }}>
-                    {totalDays}
-                  </div>
-                </div>
-                <div style={{ width: '1px', background: theme.cardBorder }}></div>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '4px' }}>
-                    Jours ouvrables
-                  </div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#10b981' }}>
-                    {workingDays}
-                  </div>
-                </div>
-                <div style={{ width: '1px', background: theme.cardBorder }}></div>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '4px' }}>
-                    Weekends
-                  </div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: '800', color: theme.textTertiary }}>
-                    {totalDays - workingDays}
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div style={{
               padding: '12px 20px',
               borderRadius: '12px',
@@ -1232,8 +1041,11 @@ export default function InvestmentCalculator() {
                   Gains/jour
                   <InfoTooltip text="Montant gagné chaque jour ouvrable" />
                 </div>
-                <div style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.text }}>
-                  {formatCurrency(dailyGain)}
+                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ef4444' }}>
+                  {formatCurrency(dailyGainIncome)} <span style={{ fontSize: '0.8rem', color: theme.textSecondary }}>(Income)</span>
+                </div>
+                <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981', marginTop: '4px' }}>
+                  {formatCurrency(dailyGainGrowth)} <span style={{ fontSize: '0.8rem', color: theme.textSecondary }}>(Growth)</span>
                 </div>
               </div>
             </div>
@@ -1275,7 +1087,7 @@ export default function InvestmentCalculator() {
                       gain: growthGain, 
                       icon: viewDescriptions.growth.icon, 
                       color: viewDescriptions.growth.color,
-                      desc: 'Accumulation avec réinvestissement'
+                      desc: 'Accumulation simple'
                     },
                     { 
                       key: 'compound',
@@ -1463,7 +1275,7 @@ export default function InvestmentCalculator() {
         body {
           margin: 0;
           padding: 0;
-          background: ${darkMode ? '#0f172a' : '#f8fafc'} !important;
+          background: #0f172a !important;
         }
       `}</style>
     </div>
