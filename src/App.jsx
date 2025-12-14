@@ -135,6 +135,10 @@ export default function InvestmentCalculator() {
   // Calculs avec taux différenciés
   const totalDays = selectedFund.duration * 30;
   const workingDays = calculateWorkingDays(selectedFund.duration);
+  
+  // Maximum dynamique : minimum 500K, ou 2× le minimum du fonds
+  const maxAmount = Math.max(500000, selectedFund.minimum * 2);
+  
   const dailyGainIncome = amount * selectedFund.rateIncome;
   const dailyGainGrowth = amount * selectedFund.rateGrowth;
   const incomeView = amount + (dailyGainIncome * workingDays);
@@ -862,7 +866,7 @@ export default function InvestmentCalculator() {
                 fontSize: '0.85rem',
                 color: theme.textTertiary
               }}>
-                Min: {formatCurrency(selectedFund.minimum)} • Max: $500,000
+                Min: {formatCurrency(selectedFund.minimum)} • Max: {formatCurrency(maxAmount)}
               </div>
             </div>
 
@@ -903,7 +907,7 @@ export default function InvestmentCalculator() {
                   <input
                     type="range"
                     min={selectedFund.minimum}
-                    max={500000}
+                    max={maxAmount}
                     step={1000}
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
@@ -913,7 +917,7 @@ export default function InvestmentCalculator() {
 
                 {/* Flèche droite */}
                 <button
-                  onClick={() => setAmount(Math.min(500000, amount + 1000))}
+                  onClick={() => setAmount(Math.min(maxAmount, amount + 1000))}
                   style={{
                     width: '50px',
                     height: '50px',
@@ -991,7 +995,7 @@ export default function InvestmentCalculator() {
                 </button>
                 
                 <button
-                  onClick={() => setAmount(Math.min(500000, amount + 1000))}
+                  onClick={() => setAmount(Math.min(maxAmount, amount + 1000))}
                   style={{
                     padding: '10px',
                     borderRadius: '8px',
@@ -1010,7 +1014,7 @@ export default function InvestmentCalculator() {
                 </button>
                 
                 <button
-                  onClick={() => setAmount(Math.min(500000, amount + 10000))}
+                  onClick={() => setAmount(Math.min(maxAmount, amount + 10000))}
                   style={{
                     padding: '10px',
                     borderRadius: '8px',
@@ -1143,7 +1147,7 @@ export default function InvestmentCalculator() {
               </button>
               
               <button
-                onClick={() => setAmount(500000)}
+                onClick={() => setAmount(maxAmount)}
                 style={{
                   padding: '10px',
                   borderRadius: '8px',
