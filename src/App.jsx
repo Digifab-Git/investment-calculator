@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, ResponsiveContainer } from 'recharts';
+import GroupSimulator from './GroupSimulator';
 
 export default function InvestmentCalculator() {
   // Fonds triés par montant minimum (du plus petit au plus grand)
@@ -44,8 +45,8 @@ export default function InvestmentCalculator() {
   const [savedSimulations, setSavedSimulations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [showGroupSimulator, setShowGroupSimulator] = useState(false);
   
-  // Ref pour éviter le chargement localStorage pendant la saisie
   const isInitialMount = useRef(true);
   const inputRef = useRef(null);
 
@@ -76,19 +77,26 @@ export default function InvestmentCalculator() {
     shadow: '0 20px 60px rgba(0, 0, 0, 0.08)'
   };
 
-  // Vérifier auth au chargement
-  // Sauvegarder/charger simulations (avec debounce pour éviter rafraîchissement)
+  // NOUVEAU : Si on affiche le simulateur de groupe
+  if (showGroupSimulator) {
+    return (
+      <GroupSimulator
+        funds={funds}
+        darkMode={darkMode}
+        onBack={() => setShowGroupSimulator(false)}
+        theme={theme}
+      />
+    );
+  }
+
   useEffect(() => {
-    // Utiliser un délai pour éviter de sauvegarder à chaque mouvement du slider
     const timeoutId = setTimeout(() => {
       localStorage.setItem('lastSimulation', JSON.stringify({
         fund: selectedFund.name,
         amount: amount,
         date: new Date().toISOString()
       }));
-    }, 500); // Attendre 500ms après le dernier changement
-
-    // Nettoyer le timeout si l'utilisateur continue à bouger le slider
+    }, 500);
     return () => clearTimeout(timeoutId);
   }, [selectedFund, amount]);
 
@@ -111,33 +119,21 @@ export default function InvestmentCalculator() {
     setAmount(selectedFund.minimum);
   }, [selectedFund]);
 
-  // Marquer les animations comme terminées après le premier rendu
   useEffect(() => {
     const timer = setTimeout(() => {
       setHasAnimated(true);
-    }, 1000); // Après 1 seconde, désactiver les animations
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
-
-  // Fonction de login
   
-  // Calcul précis des jours ouvrables (sans weekends ni jours fériés)
   const calculateWorkingDays = (months) => {
-    // Pour 10 mois : 214 jours ouvrables (calculé précisément)
-    // Pour 12 mois : 256 jours ouvrables (calculé précisément)
-    // Formule basée sur : ~21.4 jours ouvrables/mois (moyenne après weekends + fériés)
-    
-    const workingDaysPerMonth = 21.4; // Moyenne réelle (252 jours/an ÷ 12 mois)
+    const workingDaysPerMonth = 21.4;
     const workingDays = Math.round(months * workingDaysPerMonth);
-    
     return workingDays;
   };
   
-  // Calculs avec taux différenciés
   const totalDays = selectedFund.duration * 30;
   const workingDays = calculateWorkingDays(selectedFund.duration);
-  
-  // Maximum dynamique : minimum 500K, ou 2× le minimum du fonds
   const maxAmount = Math.max(500000, selectedFund.minimum * 2);
   
   const dailyGainIncome = amount * selectedFund.rateIncome;
@@ -151,7 +147,6 @@ export default function InvestmentCalculator() {
   const roi = ((compoundView - amount) / amount) * 100;
   const isValid = amount >= selectedFund.minimum;
 
-  // Calculs comparaison
   const compareTotalDays = compareWith.duration * 30;
   const compareWorkingDays = Math.round(compareTotalDays * 5 / 7);
   const compareDailyGainIncome = amount * compareWith.rateIncome;
@@ -162,12 +157,10 @@ export default function InvestmentCalculator() {
   const compareCompoundGain = compareCompoundView - amount;
   const compareRoi = ((compareCompoundView - amount) / amount) * 100;
 
-  // Calcul mode objectif
   const calculateRequiredInvestment = () => {
     return Math.ceil(targetGain / (Math.pow(1 + selectedFund.rateGrowth, workingDays) - 1));
   };
 
-  // Sauvegarder simulation
   const saveSimulation = () => {
     const newSim = {
       id: Date.now(),
@@ -282,8 +275,6 @@ export default function InvestmentCalculator() {
     </div>
   );
 
-  // PAGE DE LOGIN
-  // PAGE PRINCIPALE
   return (
     <div style={{
       minHeight: '100vh',
@@ -321,7 +312,6 @@ export default function InvestmentCalculator() {
             Choisissez votre stratégie : Revenus immédiats, Croissance ou Capitalisation
           </p>
 
-          {/* Boutons - Centrés sous le titre pour meilleur affichage mobile */}
           <div style={{
             display: 'flex',
             gap: '10px',
@@ -411,13 +401,40 @@ export default function InvestmentCalculator() {
           </div>
         )}
 
-        {/* Boutons modes */}
+        {/* Boutons modes - AVEC LE NOUVEAU BOUTON SIMULATEUR DE GROUPE */}
         <div style={{
           display: 'flex',
           gap: '15px',
           marginBottom: '25px',
           flexWrap: 'wrap'
         }}>
+          {/* NOUVEAU BOUTON : Simulateur de Groupe */}
+          <button
+            onClick={() => setShowGroupSimulator(true)}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '12px',
+              border: '2px solid rgba(236, 72, 153, 0.5)',
+              background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15))',
+              color: '#ec4899',
+              fontSize: '0.95rem',
+              cursor: 'pointer',
+              fontWeight: '700',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 15px rgba(236, 72, 153, 0.2)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(236, 72, 153, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.2)';
+            }}
+          >
+            👥 Simulateur de Groupe ✨
+          </button>
+
           <button
             onClick={() => { setShowComparison(!showComparison); setShowGoalMode(false); setShowHistory(false); }}
             style={{
@@ -510,7 +527,6 @@ export default function InvestmentCalculator() {
                 Gain souhaité : {formatCurrency(targetGain)}
               </label>
               
-              {/* Slider simplifié */}
               <input
                 type="range"
                 min="1000"
@@ -521,7 +537,6 @@ export default function InvestmentCalculator() {
                 className="investment-slider"
               />
               
-              {/* Input manuel */}
               <input
                 type="text"
                 inputMode="numeric"
@@ -529,7 +544,7 @@ export default function InvestmentCalculator() {
                 onChange={(e) => {
                   const val = e.target.value.replace(/[^0-9]/g, '');
                   if (val === '') {
-                    setTargetGain(0); // Permettre 0 pendant la saisie
+                    setTargetGain(0);
                   } else {
                     const num = parseInt(val, 10);
                     if (!isNaN(num)) {
@@ -538,7 +553,6 @@ export default function InvestmentCalculator() {
                   }
                 }}
                 onBlur={() => {
-                  // Au blur, si invalide, remettre minimum
                   if (targetGain < 1000) {
                     setTargetGain(1000);
                   }
@@ -784,7 +798,6 @@ export default function InvestmentCalculator() {
               </select>
             </div>
 
-            {/* Légende tri */}
             <div style={{
               fontSize: '0.75rem',
               color: theme.textTertiary,
@@ -849,7 +862,6 @@ export default function InvestmentCalculator() {
               💰 Votre Investissement
             </h2>
 
-            {/* Affichage du montant */}
             <div style={{
               textAlign: 'center',
               padding: '25px',
@@ -884,7 +896,6 @@ export default function InvestmentCalculator() {
               </div>
             </div>
 
-            {/* Slider avec flèches */}
             <div style={{ marginBottom: '20px' }}>
               <div style={{ 
                 display: 'flex', 
@@ -892,7 +903,6 @@ export default function InvestmentCalculator() {
                 gap: '15px',
                 marginBottom: '10px'
               }}>
-                {/* Flèche gauche */}
                 <button
                   onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))}
                   style={{
@@ -916,7 +926,6 @@ export default function InvestmentCalculator() {
                   ◄
                 </button>
 
-                {/* Slider */}
                 <div style={{ flex: 1 }}>
                   <input
                     type="range"
@@ -929,7 +938,6 @@ export default function InvestmentCalculator() {
                   />
                 </div>
 
-                {/* Flèche droite */}
                 <button
                   onClick={() => setAmount(Math.min(maxAmount, amount + 1000))}
                   style={{
@@ -955,7 +963,6 @@ export default function InvestmentCalculator() {
               </div>
             </div>
 
-            {/* Ajustement rapide avec steppers */}
             <div style={{ marginBottom: '20px' }}>
               <div style={{
                 fontSize: '0.85rem',
@@ -1048,7 +1055,6 @@ export default function InvestmentCalculator() {
               </div>
             </div>
 
-            {/* Suggestions intelligentes */}
             <div style={{ marginBottom: '20px' }}>
               <div style={{
                 fontSize: '0.85rem',
@@ -1120,7 +1126,6 @@ export default function InvestmentCalculator() {
               </div>
             </div>
 
-            {/* Raccourcis */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
@@ -1407,6 +1412,9 @@ export default function InvestmentCalculator() {
           <p style={{ marginTop: '10px', fontSize: '0.85rem', opacity: 0.7 }}>
             💡 Astuce : Utilisez le bouton "❓ Aide" pour comprendre les différentes vues d'investissement
           </p>
+          <p style={{ marginTop: '15px', fontSize: '0.85rem', opacity: 0.9, color: '#ec4899', fontWeight: '600' }}>
+            ✨ Nouveau : Simulateur de Groupe disponible pour les investissements collectifs !
+          </p>
         </div>
       </div>
 
@@ -1430,7 +1438,6 @@ export default function InvestmentCalculator() {
         
         * { box-sizing: border-box; }
         
-        /* Slider MINIMAL - Quasi-natif pour éviter bugs */
         .investment-slider {
           width: 100%;
           height: 6px;
@@ -1438,14 +1445,12 @@ export default function InvestmentCalculator() {
           cursor: pointer;
         }
         
-        /* Mobile : Curseur plus gros */
         @media (max-width: 768px) {
           .investment-slider {
             height: 8px;
           }
         }
         
-        /* Force dark mode global */
         body {
           margin: 0;
           padding: 0;
