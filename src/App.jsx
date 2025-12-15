@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 export default function InvestmentCalculator() {
   const funds = [
-    { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, duration: 12, icon: '💻' },
-    { name: 'Energy and Natural Resources Fund', rateIncome: 0.006, rateGrowth: 0.0065, minimum: 10000, duration: 10, icon: '⚡' },
-    { name: 'Health Sciences Opportunities Fund', rateIncome: 0.008, rateGrowth: 0.0085, minimum: 100000, duration: 10, icon: '💊' },
-    { name: 'Fonds pour les Marchés Émergents', rateIncome: 0.009, rateGrowth: 0.010, minimum: 250000, duration: 10, icon: '🌍' },
-    { name: 'Fonds International LGMCORP', rateIncome: 0.012, rateGrowth: 0.0125, minimum: 500000, duration: 10, icon: '🌟' }
+    { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, maximum: 50000, duration: 12, icon: '💻' },
+    { name: 'Energy and Natural Resources Fund', rateIncome: 0.006, rateGrowth: 0.0065, minimum: 10000, maximum: 100000, duration: 10, icon: '⚡' },
+    { name: 'Fonds pour les Marchés Émergents', rateIncome: 0.009, rateGrowth: 0.010, minimum: 250000, maximum: 1000000, duration: 10, icon: '🌍' },
+    { name: 'Fonds International LGMCORP', rateIncome: 0.012, rateGrowth: 0.0125, minimum: 500000, maximum: 5000000, duration: 10, icon: '🌟' }
   ];
 
   const [selectedFund, setSelectedFund] = useState(funds[0]);
@@ -138,9 +137,16 @@ export default function InvestmentCalculator() {
     }
   };
 
-  const updateMember = (id, field, value) => {
+  const updateMemberName = (id, value) => {
     setGroupMembers(groupMembers.map(m =>
-      m.id === id ? { ...m, [field]: field === 'amount' ? Number(value) : value } : m
+      m.id === id ? { ...m, name: value } : m
+    ));
+  };
+
+  const updateMemberAmount = (id, value) => {
+    const numValue = value === '' ? 0 : Number(value);
+    setGroupMembers(groupMembers.map(m =>
+      m.id === id ? { ...m, amount: numValue } : m
     ));
   };
 
@@ -152,7 +158,7 @@ export default function InvestmentCalculator() {
     const isGroupValid = totalInv >= selectedFund.minimum;
 
     const membersWithCalc = groupMembers.map(m => {
-      const percentage = (m.amount / totalInv) * 100;
+      const percentage = totalInv > 0 ? (m.amount / totalInv) * 100 : 0;
       const memberGains = (percentage / 100) * groupFinal - m.amount;
       const finalCapital = m.amount + memberGains;
       return { ...m, percentage, memberGains, finalCapital };
@@ -177,7 +183,7 @@ export default function InvestmentCalculator() {
             <select value={selectedFund.name} onChange={(e) => setSelectedFund(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '14px', borderRadius: '12px', background: theme.inputBg, color: theme.text, border: 'none', fontSize: '1rem', cursor: 'pointer', fontWeight: '600' }}>
               {funds.map(f => <option key={f.name} value={f.name}>{f.icon} {f.name}</option>)}
             </select>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginTop: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', marginTop: '20px' }}>
               <div style={{ padding: '15px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px' }}>
                 <div style={{ fontSize: '0.85rem', color: theme.textSec }}>Taux</div>
                 <div style={{ fontSize: '1.3rem', fontWeight: '800', color: '#a78bfa' }}>{formatPercent(selectedFund.rateGrowth * 100)}</div>
@@ -189,6 +195,10 @@ export default function InvestmentCalculator() {
               <div style={{ padding: '15px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '12px' }}>
                 <div style={{ fontSize: '0.85rem', color: theme.textSec }}>Minimum</div>
                 <div style={{ fontSize: '1.3rem', fontWeight: '800', color: '#fbbf24' }}>{formatCurrency(selectedFund.minimum)}</div>
+              </div>
+              <div style={{ padding: '15px', background: 'rgba(236, 72, 153, 0.1)', borderRadius: '12px' }}>
+                <div style={{ fontSize: '0.85rem', color: theme.textSec }}>Maximum</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: '800', color: '#ec4899' }}>{formatCurrency(selectedFund.maximum)}</div>
               </div>
             </div>
 
@@ -213,8 +223,20 @@ export default function InvestmentCalculator() {
                   <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: '800', color: 'white' }}>
                     {String.fromCharCode(65 + index)}
                   </div>
-                  <input type="text" value={member.name} onChange={(e) => updateMember(member.id, 'name', e.target.value)} style={{ padding: '12px', borderRadius: '8px', background: theme.inputBg, color: theme.text, border: 'none', fontSize: '0.95rem', fontWeight: '600' }} />
-                  <input type="number" value={member.amount} onChange={(e) => updateMember(member.id, 'amount', e.target.value)} min="0" step="100" style={{ padding: '12px', borderRadius: '8px', background: theme.inputBg, color: theme.text, border: 'none', fontSize: '0.95rem', fontWeight: '600' }} />
+                  <input 
+                    type="text" 
+                    value={member.name} 
+                    onChange={(e) => updateMemberName(member.id, e.target.value)} 
+                    style={{ padding: '12px', borderRadius: '8px', background: theme.inputBg, color: theme.text, border: 'none', fontSize: '0.95rem', fontWeight: '600' }} 
+                  />
+                  <input 
+                    type="number" 
+                    value={member.amount} 
+                    onChange={(e) => updateMemberAmount(member.id, e.target.value)} 
+                    min="0" 
+                    step="100" 
+                    style={{ padding: '12px', borderRadius: '8px', background: theme.inputBg, color: theme.text, border: 'none', fontSize: '0.95rem', fontWeight: '600' }} 
+                  />
                   <button onClick={() => removeMember(member.id)} disabled={groupMembers.length <= 2} style={{ padding: '12px', borderRadius: '8px', background: groupMembers.length <= 2 ? 'rgba(0,0,0,0.1)' : 'rgba(239, 68, 68, 0.2)', color: groupMembers.length <= 2 ? theme.textSec : '#f87171', border: 'none', cursor: groupMembers.length <= 2 ? 'not-allowed' : 'pointer', fontSize: '1.2rem', opacity: groupMembers.length <= 2 ? 0.5 : 1 }}>
                     🗑️
                   </button>
@@ -385,7 +407,11 @@ export default function InvestmentCalculator() {
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>🏦 Fonds d'investissement</h2>
             <select value={selectedFund.name} onChange={(e) => setSelectedFund(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '14px', borderRadius: '12px', background: theme.inputBg, color: theme.text, fontWeight: '600', cursor: 'pointer', marginBottom: '20px', border: 'none' }}>
-              {funds.map(fund => <option key={fund.name} value={fund.name}>{fund.icon} {fund.name}</option>)}
+              {funds.map(fund => (
+                <option key={fund.name} value={fund.name}>
+                  {fund.icon} {fund.name} (Min: {formatCurrency(fund.minimum)} • Max: {formatCurrency(fund.maximum)})
+                </option>
+              ))}
             </select>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
               <div style={{ padding: '15px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px' }}>
