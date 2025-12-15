@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, ResponsiveContainer } from 'recharts';
-import GroupSimulator from './TestSimulator';
 
 export default function InvestmentCalculator() {
   const funds = [
@@ -12,9 +11,9 @@ export default function InvestmentCalculator() {
   ];
 
   const viewDescriptions = {
-    income: { title: '💰 Income View', desc: 'Vous retirez les gains chaque jour ouvrable. Votre capital initial reste constant.', icon: '💰', color: '#ef4444' },
-    growth: { title: '📈 Growth View', desc: 'Les gains s\'accumulent sans être réinvestis. Croissance linéaire prévisible.', icon: '📈', color: '#3b82f6' },
-    compound: { title: '🚀 Compound View', desc: 'Les gains sont automatiquement réinvestis. Croissance exponentielle maximale !', icon: '🚀', color: '#10b981' }
+    income: { title: '💰 Income View', desc: 'Capital constant, gains réguliers', icon: '💰', color: '#ef4444' },
+    growth: { title: '📈 Growth View', desc: 'Accumulation linéaire', icon: '📈', color: '#3b82f6' },
+    compound: { title: '🚀 Compound View', desc: 'Croissance exponentielle', icon: '🚀', color: '#10b981' }
   };
 
   const [selectedFund, setSelectedFund] = useState(funds[0]);
@@ -28,7 +27,7 @@ export default function InvestmentCalculator() {
   const [savedSimulations, setSavedSimulations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [showGroupSimulator, setShowGroupSimulator] = useState(false);
+  const [currentView, setCurrentView] = useState('main'); // 'main' ou 'group'
   
   const isInitialMount = useRef(true);
 
@@ -57,17 +56,6 @@ export default function InvestmentCalculator() {
     tooltipBg: 'rgba(255, 255, 255, 0.98)',
     shadow: '0 20px 60px rgba(0, 0, 0, 0.08)'
   };
-
-  if (showGroupSimulator) {
-    return (
-      <GroupSimulator
-        funds={funds}
-        darkMode={darkMode}
-        onBack={() => setShowGroupSimulator(false)}
-        theme={theme}
-      />
-    );
-  }
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -242,6 +230,157 @@ export default function InvestmentCalculator() {
     </div>
   );
 
+  // SIMULATEUR DE GROUPE
+  const GroupSimulatorView = () => {
+    const [groupMembers, setGroupMembers] = useState([
+      { id: 1, name: 'Personne A', amount: selectedFund.minimum },
+      { id: 2, name: 'Personne B', amount: selectedFund.minimum }
+    ]);
+
+    const totalInvestment = groupMembers.reduce((sum, m) => sum + m.amount, 0);
+    const groupFinalCapital = totalInvestment * Math.pow(1 + selectedFund.rateGrowth, workingDays);
+    const totalGains = groupFinalCapital - totalInvestment;
+
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: theme.bg,
+        padding: '40px 20px',
+        fontFamily: 'system-ui',
+        color: theme.text
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          <button
+            onClick={() => setCurrentView('main')}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '12px',
+              background: theme.cardBg,
+              color: theme.text,
+              fontSize: '1rem',
+              cursor: 'pointer',
+              marginBottom: '20px',
+              fontWeight: '600',
+              border: `2px solid ${theme.cardBorder}`
+            }}
+          >
+            ← Retour
+          </button>
+
+          <h1 style={{
+            fontSize: '2.5rem',
+            fontWeight: '800',
+            background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '10px'
+          }}>
+            👥 Simulateur de Groupe
+          </h1>
+          <p style={{ fontSize: '1.1rem', color: theme.textSecondary, marginBottom: '30px' }}>
+            Investissement collectif avec répartition équitable
+          </p>
+
+          <Card>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>
+              🏦 Fonds sélectionné
+            </h2>
+            <div style={{
+              padding: '20px',
+              background: 'rgba(99, 102, 241, 0.1)',
+              borderRadius: '12px'
+            }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#a78bfa' }}>
+                {selectedFund.icon} {selectedFund.name}
+              </div>
+              <div style={{ fontSize: '0.9rem', color: theme.textSecondary, marginTop: '10px' }}>
+                Taux: {formatPercent(selectedFund.rateGrowth * 100)} • Durée: {selectedFund.duration} mois
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>
+              👥 Membres ({groupMembers.length})
+            </h2>
+            {groupMembers.map((member, index) => (
+              <div key={member.id} style={{
+                padding: '20px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '12px',
+                marginBottom: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px'
+              }}>
+                <div style={{
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.3rem',
+                  fontWeight: '800',
+                  color: 'white'
+                }}>
+                  {String.fromCharCode(65 + index)}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '1rem', fontWeight: '600' }}>{member.name}</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '800', color: '#10b981', marginTop: '5px' }}>
+                    {formatCurrency(member.amount)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </Card>
+
+          <Card>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>
+              📊 Résumé
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+              <div style={{
+                padding: '20px',
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.05))',
+                borderRadius: '14px'
+              }}>
+                <div style={{ fontSize: '0.9rem', color: theme.textSecondary, marginBottom: '8px' }}>💰 Total Investi</div>
+                <div style={{ fontSize: '2rem', fontWeight: '800', color: '#a78bfa' }}>{formatCurrency(totalInvestment)}</div>
+              </div>
+
+              <div style={{
+                padding: '20px',
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                borderRadius: '14px'
+              }}>
+                <div style={{ fontSize: '0.9rem', color: theme.textSecondary, marginBottom: '8px' }}>🎯 Gains Totaux</div>
+                <div style={{ fontSize: '2rem', fontWeight: '800', color: '#10b981' }}>{formatCurrency(totalGains)}</div>
+              </div>
+
+              <div style={{
+                padding: '20px',
+                background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.05))',
+                borderRadius: '14px'
+              }}>
+                <div style={{ fontSize: '0.9rem', color: theme.textSecondary, marginBottom: '8px' }}>🚀 Capital Final</div>
+                <div style={{ fontSize: '2rem', fontWeight: '800', color: '#ec4899' }}>{formatCurrency(groupFinalCapital)}</div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  };
+
+  // RENDU CONDITIONNEL
+  if (currentView === 'group') {
+    return <GroupSimulatorView />;
+  }
+
+  // PAGE PRINCIPALE
   return (
     <div style={{
       minHeight: '100vh',
@@ -274,33 +413,32 @@ export default function InvestmentCalculator() {
             fontWeight: '400',
             marginBottom: '20px'
           }}>
-            Choisissez votre stratégie : Revenus immédiats, Croissance ou Capitalisation
+            Choisissez votre stratégie : Revenus, Croissance ou Capitalisation
           </p>
 
           <div style={{
             display: 'flex',
             gap: '10px',
             flexWrap: 'wrap',
-            justifyContent: 'center',
-            alignItems: 'center'
+            justifyContent: 'center'
           }}>
-            <button onClick={() => setShowHelp(!showHelp)} style={{ padding: '10px 18px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.3s ease', fontWeight: '600', whiteSpace: 'nowrap' }}>
+            <button onClick={() => setShowHelp(!showHelp)} style={{ padding: '10px 18px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', cursor: 'pointer', fontWeight: '600' }}>
               ❓ Aide
             </button>
-            <button onClick={() => setDarkMode(!darkMode)} style={{ padding: '10px 18px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '1.2rem', cursor: 'pointer', transition: 'all 0.3s ease', minWidth: '50px' }}>
+            <button onClick={() => setDarkMode(!darkMode)} style={{ padding: '10px 18px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '1.2rem', cursor: 'pointer' }}>
               {darkMode ? '☀️' : '🌙'}
             </button>
           </div>
         </div>
 
         {showHelp && (
-          <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '25px', marginBottom: '30px', border: `1px solid ${theme.cardBorder}`, animation: 'fadeInDown 0.5s ease-out', boxShadow: theme.shadow }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '15px', color: theme.text }}>📚 Guide complet</h3>
+          <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '25px', marginBottom: '30px', border: `1px solid ${theme.cardBorder}`, boxShadow: theme.shadow }}>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>📚 Guide</h3>
             <div style={{ display: 'grid', gap: '15px' }}>
               {Object.values(viewDescriptions).map((view) => (
                 <div key={view.title} style={{ padding: '15px', background: theme.hoverBg, borderRadius: '10px', borderLeft: `4px solid ${view.color}` }}>
                   <div style={{ fontSize: '1rem', fontWeight: '700', color: view.color, marginBottom: '8px' }}>{view.icon} {view.title}</div>
-                  <div style={{ fontSize: '0.9rem', color: theme.textSecondary, lineHeight: '1.5' }}>{view.desc}</div>
+                  <div style={{ fontSize: '0.9rem', color: theme.textSecondary }}>{view.desc}</div>
                 </div>
               ))}
             </div>
@@ -308,50 +446,44 @@ export default function InvestmentCalculator() {
         )}
 
         <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', flexWrap: 'wrap' }}>
-          <button onClick={() => setShowGroupSimulator(true)} style={{ padding: '12px 24px', borderRadius: '12px', border: '2px solid rgba(236, 72, 153, 0.5)', background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15))', color: '#ec4899', fontSize: '0.95rem', cursor: 'pointer', fontWeight: '700', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(236, 72, 153, 0.2)' }}>
+          <button 
+            onClick={() => setCurrentView('group')} 
+            style={{ 
+              padding: '12px 24px', 
+              borderRadius: '12px', 
+              border: '2px solid rgba(236, 72, 153, 0.5)', 
+              background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15))', 
+              color: '#ec4899', 
+              fontSize: '0.95rem', 
+              cursor: 'pointer', 
+              fontWeight: '700'
+            }}
+          >
             👥 Simulateur de Groupe ✨
           </button>
-          <button onClick={() => { setShowComparison(!showComparison); setShowGoalMode(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showComparison ? '2px solid #3b82f6' : `2px solid ${theme.cardBorder}`, background: showComparison ? 'rgba(59, 130, 246, 0.15)' : theme.cardBg, color: showComparison ? '#3b82f6' : theme.text, fontSize: '0.95rem', cursor: 'pointer', fontWeight: '600', transition: 'all 0.3s ease' }}>
+          <button onClick={() => { setShowComparison(!showComparison); setShowGoalMode(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showComparison ? '2px solid #3b82f6' : `2px solid ${theme.cardBorder}`, background: showComparison ? 'rgba(59, 130, 246, 0.15)' : theme.cardBg, color: showComparison ? '#3b82f6' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
             ⚖️ Comparateur
           </button>
-          <button onClick={() => { setShowGoalMode(!showGoalMode); setShowComparison(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showGoalMode ? '2px solid #10b981' : `2px solid ${theme.cardBorder}`, background: showGoalMode ? 'rgba(16, 185, 129, 0.15)' : theme.cardBg, color: showGoalMode ? '#10b981' : theme.text, fontSize: '0.95rem', cursor: 'pointer', fontWeight: '600', transition: 'all 0.3s ease' }}>
+          <button onClick={() => { setShowGoalMode(!showGoalMode); setShowComparison(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showGoalMode ? '2px solid #10b981' : `2px solid ${theme.cardBorder}`, background: showGoalMode ? 'rgba(16, 185, 129, 0.15)' : theme.cardBg, color: showGoalMode ? '#10b981' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
             🎯 Mode Objectif
           </button>
-          <button onClick={() => { setShowHistory(!showHistory); setShowComparison(false); setShowGoalMode(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showHistory ? '2px solid #f59e0b' : `2px solid ${theme.cardBorder}`, background: showHistory ? 'rgba(245, 158, 11, 0.15)' : theme.cardBg, color: showHistory ? '#f59e0b' : theme.text, fontSize: '0.95rem', cursor: 'pointer', fontWeight: '600', transition: 'all 0.3s ease' }}>
+          <button onClick={() => { setShowHistory(!showHistory); setShowComparison(false); setShowGoalMode(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showHistory ? '2px solid #f59e0b' : `2px solid ${theme.cardBorder}`, background: showHistory ? 'rgba(245, 158, 11, 0.15)' : theme.cardBg, color: showHistory ? '#f59e0b' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
             📊 Historique ({savedSimulations.length})
           </button>
-          <button onClick={saveSimulation} disabled={!isValid} style={{ padding: '12px 24px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: isValid ? theme.text : theme.textSecondary, fontSize: '0.95rem', cursor: isValid ? 'pointer' : 'not-allowed', fontWeight: '600', transition: 'all 0.3s ease', opacity: isValid ? 1 : 0.5 }}>
+          <button onClick={saveSimulation} disabled={!isValid} style={{ padding: '12px 24px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: isValid ? theme.text : theme.textSecondary, cursor: isValid ? 'pointer' : 'not-allowed', fontWeight: '600', opacity: isValid ? 1 : 0.5 }}>
             💾 Sauvegarder
           </button>
         </div>
 
         {showGoalMode && (
-          <Card delay={0}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>🎯 Mode Objectif</h2>
-            <p style={{ color: theme.textSecondary, marginBottom: '20px', fontSize: '0.95rem' }}>Définissez vos gains souhaités</p>
+          <Card>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>🎯 Mode Objectif</h2>
+            <p style={{ color: theme.textSecondary, marginBottom: '20px' }}>Définissez vos gains souhaités</p>
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', marginBottom: '10px', color: theme.textTertiary }}>
-                Gain souhaité : {formatCurrency(targetGain)}
-              </label>
-              <input type="range" min="1000" max="1000000" step="5000" value={targetGain} onChange={(e) => setTargetGain(Number(e.target.value))} style={{ width: '100%', height: '6px', marginBottom: '15px' }} />
-              <input
-                type="text"
-                inputMode="numeric"
-                value={targetGain}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  if (val === '') setTargetGain(0);
-                  else {
-                    const num = parseInt(val, 10);
-                    if (!isNaN(num)) setTargetGain(num);
-                  }
-                }}
-                onBlur={() => { if (targetGain < 1000) setTargetGain(1000); }}
-                placeholder="Saisissez un montant..."
-                style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid rgba(16, 185, 129, 0.3)', background: theme.inputBg, color: theme.text, fontSize: '1.3rem', fontWeight: '700', outline: 'none' }}
-              />
+              <label style={{ display: 'block', marginBottom: '10px' }}>Gain : {formatCurrency(targetGain)}</label>
+              <input type="range" min="1000" max="1000000" step="5000" value={targetGain} onChange={(e) => setTargetGain(Number(e.target.value))} style={{ width: '100%' }} />
             </div>
-            <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '14px', border: '1px solid rgba(16, 185, 129, 0.3)', textAlign: 'center' }}>
+            <div style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '14px', textAlign: 'center' }}>
               <div style={{ fontSize: '0.9rem', color: theme.textSecondary, marginBottom: '8px' }}>💡 Investissement requis</div>
               <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#10b981' }}>{formatCurrency(calculateRequiredInvestment())}</div>
             </div>
@@ -359,23 +491,23 @@ export default function InvestmentCalculator() {
         )}
 
         {showHistory && (
-          <Card delay={0}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>📊 Historique</h2>
+          <Card>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>📊 Historique</h2>
             {savedSimulations.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: theme.textSecondary }}>Aucune simulation</div>
+              <div style={{ textAlign: 'center', padding: '40px', color: theme.textSecondary }}>Aucune simulation</div>
             ) : (
               <div style={{ display: 'grid', gap: '12px' }}>
                 {savedSimulations.map((sim) => (
-                  <div key={sim.id} style={{ padding: '15px', background: theme.hoverBg, borderRadius: '10px', border: `1px solid ${theme.cardBorder}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={sim.id} style={{ padding: '15px', background: theme.hoverBg, borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <div style={{ fontSize: '0.85rem', color: theme.textSecondary, marginBottom: '5px' }}>{sim.date}</div>
-                      <div style={{ fontSize: '0.95rem', fontWeight: '600', color: theme.text, marginBottom: '3px' }}>{sim.fund}</div>
-                      <div style={{ fontSize: '0.9rem', color: theme.textTertiary }}>
+                      <div style={{ fontSize: '0.85rem', color: theme.textSecondary }}>{sim.date}</div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: '600' }}>{sim.fund}</div>
+                      <div style={{ fontSize: '0.9rem' }}>
                         {formatCurrency(sim.amount)} → {formatCurrency(sim.amount + sim.gain)} 
                         <span style={{ color: '#10b981', fontWeight: '700', marginLeft: '8px' }}>+{formatPercent(sim.roi)}</span>
                       </div>
                     </div>
-                    <button onClick={() => deleteSimulation(sim.id)} style={{ padding: '8px 12px', borderRadius: '8px', border: 'none', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', cursor: 'pointer', fontSize: '0.9rem' }}>🗑️</button>
+                    <button onClick={() => deleteSimulation(sim.id)} style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', cursor: 'pointer', border: 'none' }}>🗑️</button>
                   </div>
                 ))}
               </div>
@@ -384,22 +516,22 @@ export default function InvestmentCalculator() {
         )}
 
         {showComparison && (
-          <Card delay={0}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>⚖️ Comparateur</h2>
-            <select value={compareWith.name} onChange={(e) => setCompareWith(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: `2px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.text, fontSize: '1rem', fontWeight: '600', cursor: 'pointer', marginBottom: '20px' }}>
+          <Card>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>⚖️ Comparateur</h2>
+            <select value={compareWith.name} onChange={(e) => setCompareWith(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: theme.inputBg, color: theme.text, border: 'none', marginBottom: '20px' }}>
               {funds.map(fund => (
                 <option key={fund.name} value={fund.name} disabled={fund.name === selectedFund.name}>{fund.icon} {fund.name}</option>
               ))}
             </select>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
-              <div style={{ padding: '20px', background: compoundView > compareCompoundView ? 'rgba(16, 185, 129, 0.15)' : theme.hoverBg, borderRadius: '12px', border: `2px solid ${compoundView > compareCompoundView ? '#10b981' : theme.cardBorder}` }}>
+              <div style={{ padding: '20px', background: compoundView > compareCompoundView ? 'rgba(16, 185, 129, 0.15)' : theme.hoverBg, borderRadius: '12px' }}>
                 <div style={{ fontSize: '0.85rem', color: theme.textSecondary, marginBottom: '8px' }}>{selectedFund.icon} {selectedFund.name}</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: '800', color: theme.text }}>{formatCurrency(compoundView)}</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: '800' }}>{formatCurrency(compoundView)}</div>
                 <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: '700' }}>+{formatPercent(roi)}</div>
               </div>
-              <div style={{ padding: '20px', background: compareCompoundView > compoundView ? 'rgba(16, 185, 129, 0.15)' : theme.hoverBg, borderRadius: '12px', border: `2px solid ${compareCompoundView > compoundView ? '#10b981' : theme.cardBorder}` }}>
+              <div style={{ padding: '20px', background: compareCompoundView > compoundView ? 'rgba(16, 185, 129, 0.15)' : theme.hoverBg, borderRadius: '12px' }}>
                 <div style={{ fontSize: '0.85rem', color: theme.textSecondary, marginBottom: '8px' }}>{compareWith.name}</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: '800', color: theme.text }}>{formatCurrency(compareCompoundView)}</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: '800' }}>{formatCurrency(compareCompoundView)}</div>
                 <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: '700' }}>+{formatPercent(compareRoi)}</div>
               </div>
             </div>
@@ -408,10 +540,10 @@ export default function InvestmentCalculator() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', marginBottom: '30px' }}>
           <Card delay={0.1}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>
               🏦 Fonds<InfoTooltip text="Choisissez votre fonds" />
             </h2>
-            <select value={selectedFund.name} onChange={(e) => setSelectedFund(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '14px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.text, fontSize: '1rem', fontWeight: '600', cursor: 'pointer', marginBottom: '20px' }}>
+            <select value={selectedFund.name} onChange={(e) => setSelectedFund(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '14px', borderRadius: '12px', background: theme.inputBg, color: theme.text, fontWeight: '600', cursor: 'pointer', marginBottom: '20px', border: 'none' }}>
               {funds.map(fund => <option key={fund.name} value={fund.name}>{fund.icon} {fund.name}</option>)}
             </select>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
@@ -431,19 +563,19 @@ export default function InvestmentCalculator() {
           </Card>
 
           <Card delay={0.2}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>💰 Investissement</h2>
-            <div style={{ textAlign: 'center', padding: '25px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.05))', borderRadius: '16px', marginBottom: '20px', border: '2px solid rgba(99, 102, 241, 0.2)' }}>
-              <div style={{ fontSize: '0.9rem', color: theme.textSecondary, marginBottom: '8px', fontWeight: '600' }}>À investir</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: '800', background: 'linear-gradient(135deg, #6366f1 0%, #a78bfa 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '5px' }}>{formatCurrency(amount)}</div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>💰 Montant</h2>
+            <div style={{ textAlign: 'center', padding: '25px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '16px', marginBottom: '20px' }}>
+              <div style={{ fontSize: '0.9rem', color: theme.textSecondary, marginBottom: '8px' }}>À investir</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#a78bfa' }}>{formatCurrency(amount)}</div>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
-                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))} style={{ width: '50px', height: '50px', borderRadius: '50%', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '1.5rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>◄</button>
+                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))} style={{ width: '50px', height: '50px', borderRadius: '50%', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '1.5rem', cursor: 'pointer' }}>◄</button>
                 <div style={{ flex: 1 }}>
-                  <input type="range" min={selectedFund.minimum} max={maxAmount} step={1000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="investment-slider" style={{ width: '100%' }} />
+                  <input type="range" min={selectedFund.minimum} max={maxAmount} step={1000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} style={{ width: '100%' }} />
                 </div>
-                <button onClick={() => setAmount(Math.min(maxAmount, amount + 1000))} style={{ width: '50px', height: '50px', borderRadius: '50%', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '1.5rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>►</button>
+                <button onClick={() => setAmount(Math.min(maxAmount, amount + 1000))} style={{ width: '50px', height: '50px', borderRadius: '50%', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '1.5rem', cursor: 'pointer' }}>►</button>
               </div>
             </div>
 
@@ -472,14 +604,14 @@ export default function InvestmentCalculator() {
               <button onClick={() => setAmount(maxAmount)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.textSecondary, fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>↻ Max</button>
             </div>
 
-            <div style={{ padding: '12px 20px', borderRadius: '12px', background: isValid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)', border: `1px solid ${isValid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`, textAlign: 'center', fontSize: '0.95rem', fontWeight: '600', color: isValid ? '#34d399' : '#f87171', marginBottom: '20px' }}>
+            <div style={{ padding: '12px 20px', borderRadius: '12px', background: isValid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)', border: `1px solid ${isValid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}', textAlign: 'center', fontSize: '0.95rem', fontWeight: '600', color: isValid ? '#34d399' : '#f87171', marginBottom: '20px' }}>
               {isValid ? '✓ Valide' : '⚠ Insuffisant'}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
               <div style={{ padding: '15px', background: theme.hoverBg, borderRadius: '12px' }}>
                 <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '5px' }}>Jours ouvrables</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: '800', color: theme.text }}>{workingDays}</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: '800' }}>{workingDays}</div>
               </div>
               <div style={{ padding: '15px', background: theme.hoverBg, borderRadius: '12px' }}>
                 <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '5px' }}>Gains/jour</div>
@@ -489,9 +621,9 @@ export default function InvestmentCalculator() {
           </Card>
 
           <Card delay={0.3}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>📊 Résultats</h2>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>📊 Résultats</h2>
             {!isValid ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center', color: theme.textSecondary, fontSize: '0.95rem' }}>Ajustez le montant</div>
+              <div style={{ padding: '40px', textAlign: 'center', color: theme.textSecondary }}>Ajustez le montant</div>
             ) : (
               <>
                 <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
@@ -508,11 +640,11 @@ export default function InvestmentCalculator() {
                         </div>
                         <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: '600' }}>+{formatCurrency(view.gain)}</span>
                       </div>
-                      <div style={{ fontSize: '1.6rem', fontWeight: '800', color: theme.text }}>{formatCurrency(view.value)}</div>
+                      <div style={{ fontSize: '1.6rem', fontWeight: '800' }}>{formatCurrency(view.value)}</div>
                     </div>
                   ))}
                 </div>
-                <div style={{ padding: '18px', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(139, 92, 246, 0.05))', borderRadius: '14px', border: '1px solid rgba(168, 85, 247, 0.3)', textAlign: 'center' }}>
+                <div style={{ padding: '18px', background: 'rgba(168, 85, 247, 0.15)', borderRadius: '14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '0.8rem', color: '#c4b5fd', marginBottom: '5px', fontWeight: '600' }}>ROI Compound</div>
                   <div style={{ fontSize: '2rem', fontWeight: '800', color: '#a78bfa' }}>+{formatPercent(roi)}</div>
                 </div>
@@ -523,7 +655,7 @@ export default function InvestmentCalculator() {
 
         {isValid && (
           <Card delay={0.4}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '25px', color: theme.text, textAlign: 'center' }}>📈 Évolution (30 jours)</h2>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '25px', textAlign: 'center' }}>📈 Évolution (30 jours)</h2>
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={theme.gridStroke} />
@@ -550,7 +682,6 @@ export default function InvestmentCalculator() {
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         * { box-sizing: border-box; }
-        .investment-slider { width: 100%; height: 6px; margin: 15px 0; cursor: pointer; }
         body { margin: 0; padding: 0; background: #0f172a !important; }
       `}</style>
     </div>
