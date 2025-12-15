@@ -12,9 +12,9 @@ export default function InvestmentCalculator() {
   ];
 
   const viewDescriptions = {
-    income: { title: '💰 Income View', desc: 'Vous retirez les gains chaque jour ouvrable. Capital constant.', icon: '💰', color: '#ef4444' },
-    growth: { title: '📈 Growth View', desc: 'Les gains s\'accumulent sans réinvestissement. Croissance linéaire.', icon: '📈', color: '#3b82f6' },
-    compound: { title: '🚀 Compound View', desc: 'Réinvestissement automatique. Croissance exponentielle maximale.', icon: '🚀', color: '#10b981' }
+    income: { title: '💰 Income View', desc: 'Vous retirez les gains chaque jour ouvrable. Votre capital initial reste constant.', icon: '💰', color: '#ef4444' },
+    growth: { title: '📈 Growth View', desc: 'Les gains s\'accumulent sans être réinvestis. Croissance linéaire prévisible.', icon: '📈', color: '#3b82f6' },
+    compound: { title: '🚀 Compound View', desc: 'Les gains sont automatiquement réinvestis. Croissance exponentielle maximale !', icon: '🚀', color: '#10b981' }
   };
 
   const [selectedFund, setSelectedFund] = useState(funds[0]);
@@ -255,8 +255,7 @@ export default function InvestmentCalculator() {
         <div style={{
           textAlign: 'center',
           marginBottom: '50px',
-          animation: 'fadeInDown 0.8s ease-out',
-          position: 'relative'
+          animation: 'fadeInDown 0.8s ease-out'
         }}>
           <h1 style={{
             fontSize: '3rem',
@@ -335,6 +334,22 @@ export default function InvestmentCalculator() {
                 Gain souhaité : {formatCurrency(targetGain)}
               </label>
               <input type="range" min="1000" max="1000000" step="5000" value={targetGain} onChange={(e) => setTargetGain(Number(e.target.value))} style={{ width: '100%', height: '6px', marginBottom: '15px' }} />
+              <input
+                type="text"
+                inputMode="numeric"
+                value={targetGain}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  if (val === '') setTargetGain(0);
+                  else {
+                    const num = parseInt(val, 10);
+                    if (!isNaN(num)) setTargetGain(num);
+                  }
+                }}
+                onBlur={() => { if (targetGain < 1000) setTargetGain(1000); }}
+                placeholder="Saisissez un montant..."
+                style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid rgba(16, 185, 129, 0.3)', background: theme.inputBg, color: theme.text, fontSize: '1.3rem', fontWeight: '700', outline: 'none' }}
+              />
             </div>
             <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '14px', border: '1px solid rgba(16, 185, 129, 0.3)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.9rem', color: theme.textSecondary, marginBottom: '8px' }}>💡 Investissement requis</div>
@@ -393,7 +408,9 @@ export default function InvestmentCalculator() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', marginBottom: '30px' }}>
           <Card delay={0.1}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>🏦 Fonds<InfoTooltip text="Choisissez votre fonds d'investissement" /></h2>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>
+              🏦 Fonds<InfoTooltip text="Choisissez votre fonds" />
+            </h2>
             <select value={selectedFund.name} onChange={(e) => setSelectedFund(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '14px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.text, fontSize: '1rem', fontWeight: '600', cursor: 'pointer', marginBottom: '20px' }}>
               {funds.map(fund => <option key={fund.name} value={fund.name}>{fund.icon} {fund.name}</option>)}
             </select>
@@ -414,15 +431,51 @@ export default function InvestmentCalculator() {
           </Card>
 
           <Card delay={0.2}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>💰 Montant</h2>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px', color: theme.text }}>💰 Investissement</h2>
             <div style={{ textAlign: 'center', padding: '25px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.05))', borderRadius: '16px', marginBottom: '20px', border: '2px solid rgba(99, 102, 241, 0.2)' }}>
               <div style={{ fontSize: '0.9rem', color: theme.textSecondary, marginBottom: '8px', fontWeight: '600' }}>À investir</div>
               <div style={{ fontSize: '2.5rem', fontWeight: '800', background: 'linear-gradient(135deg, #6366f1 0%, #a78bfa 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '5px' }}>{formatCurrency(amount)}</div>
             </div>
-            <input type="range" min={selectedFund.minimum} max={maxAmount} step={1000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} style={{ width: '100%', height: '6px', marginBottom: '20px' }} />
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
+                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))} style={{ width: '50px', height: '50px', borderRadius: '50%', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '1.5rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>◄</button>
+                <div style={{ flex: 1 }}>
+                  <input type="range" min={selectedFund.minimum} max={maxAmount} step={1000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="investment-slider" style={{ width: '100%' }} />
+                </div>
+                <button onClick={() => setAmount(Math.min(maxAmount, amount + 1000))} style={{ width: '50px', height: '50px', borderRadius: '50%', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '1.5rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>►</button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textSecondary, marginBottom: '10px' }}>⚡ Ajustement rapide</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 10000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−10K</button>
+                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−1K</button>
+                <button onClick={() => setAmount(Math.min(maxAmount, amount + 1000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+1K</button>
+                <button onClick={() => setAmount(Math.min(maxAmount, amount + 10000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+10K</button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textSecondary, marginBottom: '10px' }}>💡 Suggestions</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                <button onClick={() => setAmount(100000)} disabled={selectedFund.minimum > 100000} style={{ padding: '12px 8px', borderRadius: '8px', border: amount === 100000 ? '2px solid #6366f1' : `2px solid ${theme.cardBorder}`, background: amount === 100000 ? 'rgba(99, 102, 241, 0.1)' : theme.inputBg, color: selectedFund.minimum > 100000 ? theme.textTertiary : (amount === 100000 ? '#6366f1' : theme.text), fontSize: '0.95rem', fontWeight: '700', cursor: selectedFund.minimum > 100000 ? 'not-allowed' : 'pointer', opacity: selectedFund.minimum > 100000 ? 0.5 : 1 }}>$100K</button>
+                <button onClick={() => setAmount(250000)} disabled={selectedFund.minimum > 250000} style={{ padding: '12px 8px', borderRadius: '8px', border: amount === 250000 ? '2px solid #6366f1' : `2px solid ${theme.cardBorder}`, background: amount === 250000 ? 'rgba(99, 102, 241, 0.1)' : theme.inputBg, color: selectedFund.minimum > 250000 ? theme.textTertiary : (amount === 250000 ? '#6366f1' : theme.text), fontSize: '0.95rem', fontWeight: '700', cursor: selectedFund.minimum > 250000 ? 'not-allowed' : 'pointer', opacity: selectedFund.minimum > 250000 ? 0.5 : 1 }}>$250K</button>
+                <button onClick={() => setAmount(500000)} style={{ padding: '12px 8px', borderRadius: '8px', border: amount === 500000 ? '2px solid #6366f1' : `2px solid ${theme.cardBorder}`, background: amount === 500000 ? 'rgba(99, 102, 241, 0.1)' : theme.inputBg, color: amount === 500000 ? '#6366f1' : theme.text, fontSize: '0.95rem', fontWeight: '700', cursor: 'pointer' }}>$500K</button>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
+              <button onClick={() => setAmount(selectedFund.minimum)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.textSecondary, fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>↺ Min</button>
+              <button onClick={() => setAmount(Math.round(amount / 10000) * 10000)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.textSecondary, fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>⌀ Rond</button>
+              <button onClick={() => setAmount(maxAmount)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.textSecondary, fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>↻ Max</button>
+            </div>
+
             <div style={{ padding: '12px 20px', borderRadius: '12px', background: isValid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)', border: `1px solid ${isValid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`, textAlign: 'center', fontSize: '0.95rem', fontWeight: '600', color: isValid ? '#34d399' : '#f87171', marginBottom: '20px' }}>
               {isValid ? '✓ Valide' : '⚠ Insuffisant'}
             </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
               <div style={{ padding: '15px', background: theme.hoverBg, borderRadius: '12px' }}>
                 <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '5px' }}>Jours ouvrables</div>
@@ -443,13 +496,16 @@ export default function InvestmentCalculator() {
               <>
                 <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
                   {[
-                    { label: 'Income', value: incomeView, gain: incomeGain, icon: '💰', color: '#ef4444' },
-                    { label: 'Growth', value: growthView, gain: growthGain, icon: '📈', color: '#3b82f6' },
-                    { label: 'Compound', value: compoundView, gain: compoundGain, icon: '🚀', color: '#10b981' }
+                    { label: 'Income', value: incomeView, gain: incomeGain, icon: '💰', color: '#ef4444', desc: 'Capital constant' },
+                    { label: 'Growth', value: growthView, gain: growthGain, icon: '📈', color: '#3b82f6', desc: 'Accumulation' },
+                    { label: 'Compound', value: compoundView, gain: compoundGain, icon: '🚀', color: '#10b981', desc: 'Exponentiel' }
                   ].map((view) => (
                     <div key={view.label} style={{ padding: '18px', background: `linear-gradient(135deg, ${view.color}20, ${view.color}10)`, borderRadius: '14px', border: `2px solid ${view.color}` }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{view.icon} {view.label}</span>
+                        <div>
+                          <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{view.icon} {view.label}</span>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginTop: '2px' }}>{view.desc}</div>
+                        </div>
                         <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: '600' }}>+{formatCurrency(view.gain)}</span>
                       </div>
                       <div style={{ fontSize: '1.6rem', fontWeight: '800', color: theme.text }}>{formatCurrency(view.value)}</div>
@@ -494,6 +550,7 @@ export default function InvestmentCalculator() {
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         * { box-sizing: border-box; }
+        .investment-slider { width: 100%; height: 6px; margin: 15px 0; cursor: pointer; }
         body { margin: 0; padding: 0; background: #0f172a !important; }
       `}</style>
     </div>
