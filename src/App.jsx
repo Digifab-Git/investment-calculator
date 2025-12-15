@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, ResponsiveContainer } from 'recharts';
-import GroupSimulator from './GroupSimulator';
+import GroupSimulator from './TestSimulator';
 
 export default function InvestmentCalculator() {
   const funds = [
