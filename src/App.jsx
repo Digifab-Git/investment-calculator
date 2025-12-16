@@ -1,26 +1,73 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-// DESCRIPTIONS DES TYPES DE RÉMUNÉRATION
+// DESCRIPTIONS
 const viewDescriptions = {
-  income: { 
-    title: '💰 Income View', 
-    desc: 'Vous retirez les gains chaque jour ouvrable. Votre capital initial reste constant. Idéal pour générer des revenus réguliers.', 
-    icon: '💰', 
-    color: '#ef4444' 
-  },
-  growth: { 
-    title: '📈 Growth View', 
-    desc: 'Les gains s\'accumulent sans être réinvestis. Croissance linéaire prévisible. Un compromis entre revenu et capitalisation.', 
-    icon: '📈', 
-    color: '#3b82f6' 
-  },
-  compound: { 
-    title: '🚀 Compound View', 
-    desc: 'Les gains sont automatiquement réinvestis chaque jour. Croissance exponentielle maximale grâce aux intérêts composés !', 
-    icon: '🚀', 
-    color: '#10b981' 
-  }
+  income: { title: '💰 Income View', desc: 'Vous retirez les gains chaque jour ouvrable. Votre capital initial reste constant.', icon: '💰', color: '#ef4444' },
+  growth: { title: '📈 Growth View', desc: 'Les gains s\'accumulent sans être réinvestis. Croissance linéaire prévisible.', icon: '📈', color: '#3b82f6' },
+  compound: { title: '🚀 Compound View', desc: 'Les gains sont automatiquement réinvestis. Croissance exponentielle maximale !', icon: '🚀', color: '#10b981' }
 };
+
+// ✅ COMPOSANT ISOLÉ POUR UNE LIGNE DE MEMBRE - AVEC SON PROPRE STATE LOCAL
+function MemberInputRow({ member, index, theme, onUpdate, onDelete, canDelete }) {
+  // État LOCAL pour éviter les re-renders du parent
+  const [localName, setLocalName] = useState(member.name);
+  const [localAmount, setLocalAmount] = useState(member.amount);
+
+  // Sync avec le parent seulement quand on perd le focus
+  const handleNameBlur = () => {
+    if (localName !== member.name) {
+      onUpdate(member.id, { name: localName });
+    }
+  };
+
+  const handleAmountBlur = () => {
+    if (localAmount !== member.amount) {
+      onUpdate(member.id, { amount: localAmount });
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', display: 'grid', gridTemplateColumns: '50px 1fr 1fr auto', gap: '15px', alignItems: 'center' }}>
+      <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: '800', color: 'white' }}>
+        {String.fromCharCode(65 + index)}
+      </div>
+      <input 
+        type="text" 
+        value={localName}
+        onChange={(e) => setLocalName(e.target.value)}
+        onBlur={handleNameBlur}
+        placeholder="Nom du membre"
+        style={{ padding: '12px', borderRadius: '8px', background: theme.inputBg, color: theme.text, border: 'none', fontSize: '0.95rem', fontWeight: '600' }} 
+      />
+      <input 
+        type="number" 
+        value={localAmount}
+        onChange={(e) => setLocalAmount(e.target.value === '' ? 0 : Number(e.target.value))}
+        onBlur={handleAmountBlur}
+        min="0" 
+        step="100" 
+        placeholder="Montant"
+        style={{ padding: '12px', borderRadius: '8px', background: theme.inputBg, color: theme.text, border: 'none', fontSize: '0.95rem', fontWeight: '600' }} 
+      />
+      <button 
+        onClick={() => onDelete(member.id)}
+        disabled={!canDelete}
+        style={{ 
+          padding: '12px', 
+          borderRadius: '8px', 
+          background: !canDelete ? 'rgba(0,0,0,0.1)' : 'rgba(239, 68, 68, 0.2)', 
+          color: !canDelete ? theme.textSec : '#f87171', 
+          border: 'none', 
+          cursor: !canDelete ? 'not-allowed' : 'pointer', 
+          fontSize: '1.2rem', 
+          opacity: !canDelete ? 0.5 : 1 
+        }}
+      >
+        🗑️
+      </button>
+    </div>
+  );
+}
 
 export default function InvestmentCalculator() {
   const funds = [
@@ -34,12 +81,6 @@ export default function InvestmentCalculator() {
   const [amount, setAmount] = useState(500);
   const [darkMode, setDarkMode] = useState(true);
   const [currentView, setCurrentView] = useState('main');
-  const [showComparison, setShowComparison] = useState(false);
-  const [compareWith, setCompareWith] = useState(funds[1]);
-  const [showGoalMode, setShowGoalMode] = useState(false);
-  const [targetGain, setTargetGain] = useState(50000);
-  const [savedSimulations, setSavedSimulations] = useState([]);
-  const [showHistory, setShowHistory] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   
   const [groupMembers, setGroupMembers] = useState([
@@ -72,25 +113,11 @@ export default function InvestmentCalculator() {
     setAmount(selectedFund.minimum);
   }, [selectedFund]);
 
-  useEffect(() => {
-    const history = localStorage.getItem('simulationHistory');
-    if (history) setSavedSimulations(JSON.parse(history));
-  }, []);
-
-  // ✅ CALLBACKS EXACTEMENT COMME VOTRE CODE QUI MARCHE
-  const updateMemberName = useCallback((id, value) => {
-    setGroupMembers(prev => {
-      const updated = prev.map(m => m.id === id ? { ...m, name: value } : m);
-      return updated;
-    });
-  }, []);
-
-  const updateMemberAmount = useCallback((id, value) => {
-    const numValue = value === '' ? 0 : Number(value);
-    setGroupMembers(prev => {
-      const updated = prev.map(m => m.id === id ? { ...m, amount: numValue } : m);
-      return updated;
-    });
+  // ✅ CALLBACK STABLE POUR METTRE À JOUR UN MEMBRE
+  const updateMember = useCallback((id, updates) => {
+    setGroupMembers(prev => prev.map(m => 
+      m.id === id ? { ...m, ...updates } : m
+    ));
   }, []);
 
   const addMember = () => {
@@ -102,11 +129,9 @@ export default function InvestmentCalculator() {
     setNextId(nextId + 1);
   };
 
-  const removeMember = (id) => {
-    if (groupMembers.length > 2) {
-      setGroupMembers(prev => prev.filter(m => m.id !== id));
-    }
-  };
+  const removeMember = useCallback((id) => {
+    setGroupMembers(prev => prev.length > 2 ? prev.filter(m => m.id !== id) : prev);
+  }, []);
 
   const formatCurrency = (val) => {
     return Math.round(val).toLocaleString('fr-FR').replace(/\s/g, ' ') + ' $';
@@ -115,47 +140,6 @@ export default function InvestmentCalculator() {
   const formatPercent = (val) => `${val.toFixed(2)}%`;
 
   const workingDays = Math.round(selectedFund.duration * 21.4);
-  const maxAmount = Math.max(500000, selectedFund.minimum * 2);
-  
-  const dailyGainIncome = amount * selectedFund.rateIncome;
-  const dailyGainGrowth = amount * selectedFund.rateGrowth;
-  const incomeView = amount + (dailyGainIncome * workingDays);
-  const growthView = amount + (dailyGainGrowth * workingDays);
-  const compoundView = amount * Math.pow(1 + selectedFund.rateGrowth, workingDays);
-  const incomeGain = incomeView - amount;
-  const growthGain = growthView - amount;
-  const compoundGain = compoundView - amount;
-  const roi = ((compoundView - amount) / amount) * 100;
-  const isValid = amount >= selectedFund.minimum;
-
-  const compareWorkingDays = Math.round(compareWith.duration * 21.4);
-  const compareCompoundView = amount * Math.pow(1 + compareWith.rateGrowth, compareWorkingDays);
-  const compareRoi = ((compareCompoundView - amount) / amount) * 100;
-
-  const calculateRequiredInvestment = () => {
-    return Math.ceil(targetGain / (Math.pow(1 + selectedFund.rateGrowth, workingDays) - 1));
-  };
-
-  const saveSimulation = () => {
-    const newSim = {
-      id: Date.now(),
-      date: new Date().toLocaleString('fr-FR'),
-      fund: selectedFund.name,
-      amount: amount,
-      gain: compoundGain,
-      roi: roi
-    };
-    const updated = [newSim, ...savedSimulations].slice(0, 10);
-    setSavedSimulations(updated);
-    localStorage.setItem('simulationHistory', JSON.stringify(updated));
-    alert('✅ Simulation sauvegardée !');
-  };
-
-  const deleteSimulation = (id) => {
-    const updated = savedSimulations.filter(s => s.id !== id);
-    setSavedSimulations(updated);
-    localStorage.setItem('simulationHistory', JSON.stringify(updated));
-  };
 
   // CALCULS POUR LE GROUPE
   const totalInv = groupMembers.reduce((sum, m) => sum + m.amount, 0);
@@ -269,43 +253,15 @@ export default function InvestmentCalculator() {
 
             <div style={{ display: 'grid', gap: '15px' }}>
               {groupMembers.map((member, index) => (
-                <div key={member.id} style={{ padding: '20px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', display: 'grid', gridTemplateColumns: '50px 1fr 1fr auto', gap: '15px', alignItems: 'center' }}>
-                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: '800', color: 'white' }}>
-                    {String.fromCharCode(65 + index)}
-                  </div>
-                  <input 
-                    type="text" 
-                    value={member.name} 
-                    onChange={(e) => updateMemberName(member.id, e.target.value)}
-                    placeholder="Nom du membre"
-                    style={{ padding: '12px', borderRadius: '8px', background: theme.inputBg, color: theme.text, border: 'none', fontSize: '0.95rem', fontWeight: '600' }} 
-                  />
-                  <input 
-                    type="number" 
-                    value={member.amount} 
-                    onChange={(e) => updateMemberAmount(member.id, e.target.value)}
-                    min="0" 
-                    step="100" 
-                    placeholder="Montant"
-                    style={{ padding: '12px', borderRadius: '8px', background: theme.inputBg, color: theme.text, border: 'none', fontSize: '0.95rem', fontWeight: '600' }} 
-                  />
-                  <button 
-                    onClick={() => removeMember(member.id)}
-                    disabled={groupMembers.length <= 2}
-                    style={{ 
-                      padding: '12px', 
-                      borderRadius: '8px', 
-                      background: groupMembers.length <= 2 ? 'rgba(0,0,0,0.1)' : 'rgba(239, 68, 68, 0.2)', 
-                      color: groupMembers.length <= 2 ? theme.textSec : '#f87171', 
-                      border: 'none', 
-                      cursor: groupMembers.length <= 2 ? 'not-allowed' : 'pointer', 
-                      fontSize: '1.2rem', 
-                      opacity: groupMembers.length <= 2 ? 0.5 : 1 
-                    }}
-                  >
-                    🗑️
-                  </button>
-                </div>
+                <MemberInputRow
+                  key={member.id}
+                  member={member}
+                  index={index}
+                  theme={theme}
+                  onUpdate={updateMember}
+                  onDelete={removeMember}
+                  canDelete={groupMembers.length > 2}
+                />
               ))}
             </div>
           </Card>
@@ -406,89 +362,15 @@ export default function InvestmentCalculator() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', flexWrap: 'wrap' }}>
-          <button onClick={() => setCurrentView('group')} style={{ padding: '12px 24px', borderRadius: '12px', border: '2px solid rgba(236, 72, 153, 0.5)', background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15))', color: '#ec4899', fontSize: '0.95rem', cursor: 'pointer', fontWeight: '700' }}>
-            👥 Simulateur de Groupe ✨
-          </button>
-          <button onClick={() => { setShowComparison(!showComparison); setShowGoalMode(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showComparison ? '2px solid #3b82f6' : `2px solid ${theme.cardBorder}`, background: showComparison ? 'rgba(59, 130, 246, 0.15)' : theme.cardBg, color: showComparison ? '#3b82f6' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
-            ⚖️ Comparateur
-          </button>
-          <button onClick={() => { setShowGoalMode(!showGoalMode); setShowComparison(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showGoalMode ? '2px solid #10b981' : `2px solid ${theme.cardBorder}`, background: showGoalMode ? 'rgba(16, 185, 129, 0.15)' : theme.cardBg, color: showGoalMode ? '#10b981' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
-            🎯 Mode Objectif
-          </button>
-          <button onClick={() => { setShowHistory(!showHistory); setShowComparison(false); setShowGoalMode(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showHistory ? '2px solid #f59e0b' : `2px solid ${theme.cardBorder}`, background: showHistory ? 'rgba(245, 158, 11, 0.15)' : theme.cardBg, color: showHistory ? '#f59e0b' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
-            📊 Historique ({savedSimulations.length})
-          </button>
-          <button onClick={saveSimulation} disabled={!isValid} style={{ padding: '12px 24px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: isValid ? theme.text : theme.textSec, cursor: isValid ? 'pointer' : 'not-allowed', fontWeight: '600', opacity: isValid ? 1 : 0.5 }}>
-            💾 Sauvegarder
-          </button>
-        </div>
+        <button onClick={() => setCurrentView('group')} style={{ padding: '12px 24px', borderRadius: '12px', border: '2px solid rgba(236, 72, 153, 0.5)', background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15))', color: '#ec4899', fontSize: '0.95rem', cursor: 'pointer', fontWeight: '700', display: 'block', margin: '0 auto' }}>
+          👥 Simulateur de Groupe ✨
+        </button>
 
-        {showGoalMode && (
-          <Card>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>🎯 Mode Objectif</h2>
-            <p style={{ color: theme.textSec, marginBottom: '20px' }}>Définissez vos gains souhaités</p>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600' }}>Gain souhaité : {formatCurrency(targetGain)}</label>
-              <input type="range" min="1000" max="1000000" step="5000" value={targetGain} onChange={(e) => setTargetGain(Number(e.target.value))} style={{ width: '100%' }} />
-            </div>
-            <div style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '14px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.9rem', color: theme.textSec, marginBottom: '8px' }}>💡 Investissement requis</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#10b981' }}>{formatCurrency(calculateRequiredInvestment())}</div>
-            </div>
-          </Card>
-        )}
-
-        {showHistory && (
-          <Card>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>📊 Historique des simulations</h2>
-            {savedSimulations.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: theme.textSec }}>Aucune simulation sauvegardée</div>
-            ) : (
-              <div style={{ display: 'grid', gap: '12px' }}>
-                {savedSimulations.map((sim) => (
-                  <div key={sim.id} style={{ padding: '15px', background: theme.hoverBg, borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontSize: '0.85rem', color: theme.textSec }}>{sim.date}</div>
-                      <div style={{ fontSize: '0.95rem', fontWeight: '600', marginTop: '5px' }}>{sim.fund}</div>
-                      <div style={{ fontSize: '0.9rem', marginTop: '5px' }}>
-                        {formatCurrency(sim.amount)} → {formatCurrency(sim.amount + sim.gain)} 
-                        <span style={{ color: '#10b981', fontWeight: '700', marginLeft: '8px' }}>+{formatPercent(sim.roi)}</span>
-                      </div>
-                    </div>
-                    <button onClick={() => deleteSimulation(sim.id)} style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', cursor: 'pointer', border: 'none', fontSize: '1.2rem' }}>🗑️</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        )}
-
-        {showComparison && (
-          <Card>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>⚖️ Comparateur de fonds</h2>
-            <select value={compareWith.name} onChange={(e) => setCompareWith(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: theme.inputBg, color: theme.text, border: 'none', marginBottom: '20px', fontWeight: '600' }}>
-              {funds.map(fund => (
-                <option key={fund.name} value={fund.name} disabled={fund.name === selectedFund.name}>{fund.icon} {fund.name}</option>
-              ))}
-            </select>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
-              <div style={{ padding: '20px', background: compoundView > compareCompoundView ? 'rgba(16, 185, 129, 0.15)' : theme.hoverBg, borderRadius: '12px', border: compoundView > compareCompoundView ? '2px solid #10b981' : 'none' }}>
-                <div style={{ fontSize: '0.85rem', color: theme.textSec, marginBottom: '8px' }}>{selectedFund.icon} {selectedFund.name}</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: '800' }}>{formatCurrency(compoundView)}</div>
-                <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: '700', marginTop: '5px' }}>+{formatPercent(roi)}</div>
-              </div>
-              <div style={{ padding: '20px', background: compareCompoundView > compoundView ? 'rgba(16, 185, 129, 0.15)' : theme.hoverBg, borderRadius: '12px', border: compareCompoundView > compoundView ? '2px solid #10b981' : 'none' }}>
-                <div style={{ fontSize: '0.85rem', color: theme.textSec, marginBottom: '8px' }}>{compareWith.icon} {compareWith.name}</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: '800' }}>{formatCurrency(compareCompoundView)}</div>
-                <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: '700', marginTop: '5px' }}>+{formatPercent(compareRoi)}</div>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        <div style={{ textAlign: 'center', padding: '100px 20px', color: theme.textSec }}>
-          <p>Cliquez sur "Simulateur de Groupe" pour tester !</p>
+        <div style={{ textAlign: 'center', padding: '100px 20px', color: theme.textSec, marginTop: '40px' }}>
+          <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '20px' }}>🎯 SOLUTION EXPERT</h2>
+          <p style={{ fontSize: '1.2rem', marginBottom: '15px' }}>État LOCAL dans chaque input</p>
+          <p style={{ fontSize: '1.1rem' }}>Sync au parent seulement sur BLUR</p>
+          <p style={{ fontSize: '1rem', marginTop: '30px', opacity: 0.7 }}>Les inputs ne perdent JAMAIS le focus !</p>
         </div>
       </div>
     </div>
