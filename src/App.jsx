@@ -36,7 +36,12 @@ function MemberInputRow({ member, index, theme, onUpdate, onDelete, canDelete })
   const handleAmountChange = (e) => {
     const newValue = e.target.value === '' ? 0 : Number(e.target.value);
     setLocalAmount(newValue);
-    onUpdate(member.id, { amount: newValue });
+  };
+
+  const handleAmountBlur = () => {
+    if (localAmount !== member.amount) {
+      onUpdate(member.id, { amount: localAmount });
+    }
   };
 
   return (
@@ -56,6 +61,7 @@ function MemberInputRow({ member, index, theme, onUpdate, onDelete, canDelete })
         type="number" 
         value={localAmount}
         onChange={handleAmountChange}
+        onBlur={handleAmountBlur}
         min="0" 
         step="100" 
         placeholder="Montant"
@@ -592,6 +598,9 @@ export default function InvestmentCalculator() {
         <div style={{ textAlign: 'center', marginTop: '50px', padding: '20px', color: theme.textSec, fontSize: '0.9rem', borderTop: `1px solid ${theme.cardBorder}` }}>
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
           <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Simulateur de Groupe disponible</p>
+          <p style={{ marginTop: '25px', fontSize: '0.85rem', opacity: 0.7 }}>
+            Version 1.0.0 • Dernière mise à jour : 16 décembre 2024
+          </p>
         </div>
       </div>
     </div>
