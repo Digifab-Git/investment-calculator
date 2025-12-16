@@ -249,7 +249,7 @@ export default function InvestmentCalculator() {
   const endDate = calculateEndDate(startDate, selectedFund.duration);
   const calendarDays = Math.floor((endDate - new Date(startDate)) / (1000 * 60 * 60 * 24));
 
-  const workingDays = selectedFund.duration * 20; // ✅ Formule LGM : 20 jours ouvrables/mois
+  const workingDays = selectedFund.duration * 14; // ✅ Formule LGM observée : 14 jours ouvrables effectifs/mois
   const maxAmount = selectedFund.maximum; // ✅ Utilise le vrai maximum du fonds
   
   const dailyGainIncome = amount * selectedFund.rateIncome;
@@ -263,7 +263,7 @@ export default function InvestmentCalculator() {
   const roi = ((compoundView - amount) / amount) * 100;
   const isValid = amount >= selectedFund.minimum;
 
-  const compareWorkingDays = compareWith.duration * 20; // ✅ Formule LGM
+  const compareWorkingDays = compareWith.duration * 14; // ✅ Formule LGM observée
   const compareCompoundView = amount * Math.pow(1 + compareWith.rateGrowth, compareWorkingDays);
   const compareRoi = ((compareCompoundView - amount) / amount) * 100;
 
@@ -941,7 +941,7 @@ export default function InvestmentCalculator() {
               </div>
               
               <div style={{ marginTop: '15px', padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '10px', fontSize: '0.85rem', color: '#60a5fa', lineHeight: '1.5' }}>
-                💡 Méthode LGM : 20 jours ouvrables par mois (calendrier hors weekends et jours fériés)
+                💡 Méthode LGM : 14 jours ouvrables effectifs par mois (hors weekends, jours fériés et périodes de maintenance)
               </div>
             </div>
           </Card>
@@ -1029,13 +1029,13 @@ export default function InvestmentCalculator() {
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
           <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Simulateur de Groupe disponible</p>
           <p style={{ marginTop: '25px', fontSize: '0.85rem', opacity: 0.7 }}>
-            Version 1.2.1 • Dernière mise à jour : 16 décembre 2024
+            Version 1.2.2 • Dernière mise à jour : 16 décembre 2024
           </p>
           <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6 }}>
-            🆕 v1.2.1 : Growth & Compound View dans simulateur de groupe
+            🆕 v1.2.2 : Correction formule LGM (14 jours effectifs/mois pour correspondance exacte site LGM)
           </p>
           <p style={{ marginTop: '5px', fontSize: '0.75rem', opacity: 0.5 }}>
-            v1.2 : Formule LGM • Dates • v1.1 : Sauvegarde • Export • Suggestions
+            v1.2.1 : Growth & Compound groupe • v1.2 : Dates • v1.1 : Sauvegarde & Export
           </p>
         </div>
       </div>
