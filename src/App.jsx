@@ -92,7 +92,7 @@ export default function InvestmentCalculator() {
     { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, maximum: 50000, duration: 12, icon: '💻' },
     { name: 'Energy and Natural Resources Fund', rateIncome: 0.006, rateGrowth: 0.0065, minimum: 10000, maximum: 100000, duration: 10, icon: '⚡' },
     { name: 'Fonds pour les Marchés Émergents', rateIncome: 0.009, rateGrowth: 0.010, minimum: 250000, maximum: 1000000, duration: 10, icon: '🌍' },
-    { name: 'Fonds International LGMCORP', rateIncome: 0.012, rateGrowth: 0.0125, minimum: 500000, maximum: 5000000, duration: 10, icon: '🌟' }
+    { name: 'Fonds International LGMCORP', rateIncome: 0.012, rateGrowth: 0.0125, minimum: 500000, maximum: 1000000, duration: 10, icon: '🌟' }
   ];
 
   const [selectedFund, setSelectedFund] = useState(funds[0]);
@@ -106,6 +106,10 @@ export default function InvestmentCalculator() {
   const [savedSimulations, setSavedSimulations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  
+  // NOUVEAU : État pour les simulations de groupe
+  const [savedGroupSimulations, setSavedGroupSimulations] = useState([]);
+  const [showGroupHistory, setShowGroupHistory] = useState(false);
   
   const [groupMembers, setGroupMembers] = useState([
     { id: 1, name: 'Personne A', amount: 500 },
@@ -140,6 +144,10 @@ export default function InvestmentCalculator() {
   useEffect(() => {
     const history = localStorage.getItem('simulationHistory');
     if (history) setSavedSimulations(JSON.parse(history));
+    
+    // Charger l'historique des simulations de groupe
+    const groupHistory = localStorage.getItem('groupSimulationHistory');
+    if (groupHistory) setSavedGroupSimulations(JSON.parse(groupHistory));
   }, []);
 
   const updateMember = useCallback((id, updates) => {
@@ -210,6 +218,81 @@ export default function InvestmentCalculator() {
     localStorage.setItem('simulationHistory', JSON.stringify(updated));
   };
 
+  // NOUVEAU : Fonctions pour les simulations de groupe
+  const saveGroupSimulation = () => {
+    const newSim = {
+      id: Date.now(),
+      date: new Date().toLocaleString('fr-FR'),
+      fund: selectedFund.name,
+      members: groupMembers.map(m => ({ name: m.name, amount: m.amount })),
+      totalInvested: totalInv,
+      totalGains: totalGains,
+      finalCapital: groupFinal,
+      roi: ((groupFinal - totalInv) / totalInv) * 100
+    };
+    const updated = [newSim, ...savedGroupSimulations].slice(0, 10);
+    setSavedGroupSimulations(updated);
+    localStorage.setItem('groupSimulationHistory', JSON.stringify(updated));
+    alert('✅ Simulation de groupe sauvegardée !');
+  };
+
+  const deleteGroupSimulation = (id) => {
+    const updated = savedGroupSimulations.filter(s => s.id !== id);
+    setSavedGroupSimulations(updated);
+    localStorage.setItem('groupSimulationHistory', JSON.stringify(updated));
+  };
+
+  const loadGroupSimulation = (sim) => {
+    setSelectedFund(funds.find(f => f.name === sim.fund) || funds[0]);
+    setGroupMembers(sim.members.map((m, i) => ({ id: i + 1, name: m.name, amount: m.amount })));
+    setNextId(sim.members.length + 1);
+    setShowGroupHistory(false);
+    alert('✅ Simulation chargée !');
+  };
+
+  // NOUVEAU : Fonction d'export des résultats
+  const exportResults = (isGroup = false) => {
+    let text = '';
+    if (isGroup) {
+      text = `🎯 SIMULATION DE GROUPE - ${selectedFund.name}\n`;
+      text += `📅 Date : ${new Date().toLocaleString('fr-FR')}\n\n`;
+      text += `💰 Total investi : ${formatCurrency(totalInv)}\n`;
+      text += `🎯 Gains totaux : ${formatCurrency(totalGains)}\n`;
+      text += `🚀 Capital final : ${formatCurrency(groupFinal)}\n`;
+      text += `📊 ROI : ${formatPercent(((groupFinal - totalInv) / totalInv) * 100)}\n\n`;
+      text += `👥 RÉPARTITION PAR MEMBRE :\n`;
+      membersWithCalc.forEach((m, i) => {
+        text += `\n${String.fromCharCode(65 + i)}. ${m.name}\n`;
+        text += `   Investi : ${formatCurrency(m.amount)}\n`;
+        text += `   Part : ${formatPercent(m.percentage)}\n`;
+        text += `   Gains : ${formatCurrency(m.memberGains)}\n`;
+        text += `   Final : ${formatCurrency(m.finalCapital)}\n`;
+      });
+    } else {
+      text = `🎯 SIMULATION INDIVIDUELLE - ${selectedFund.name}\n`;
+      text += `📅 Date : ${new Date().toLocaleString('fr-FR')}\n\n`;
+      text += `💰 Capital investi : ${formatCurrency(amount)}\n`;
+      text += `⏱️ Durée : ${selectedFund.duration} mois (${workingDays} jours ouvrables)\n\n`;
+      text += `💰 Income View : ${formatCurrency(incomeView)} (Gains: ${formatCurrency(incomeGain)})\n`;
+      text += `📈 Growth View : ${formatCurrency(growthView)} (Gains: ${formatCurrency(growthGain)})\n`;
+      text += `🚀 Compound View : ${formatCurrency(compoundView)} (Gains: ${formatCurrency(compoundGain)})\n\n`;
+      text += `📊 ROI Compound : ${formatPercent(roi)}`;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      alert('✅ Résultats copiés dans le presse-papier !');
+    }).catch(() => {
+      alert('❌ Erreur lors de la copie');
+    });
+  };
+
+  // NOUVEAU : Suggestions de fonds intelligentes
+  const getRecommendedFunds = (investAmount) => {
+    return funds.filter(f => investAmount >= f.minimum && investAmount <= f.maximum);
+  };
+
+  const recommendedFunds = getRecommendedFunds(amount);
+  const recommendedGroupFunds = getRecommendedFunds(totalInv);
+
   const totalInv = groupMembers.reduce((sum, m) => sum + m.amount, 0);
   const groupFinal = totalInv * Math.pow(1 + selectedFund.rateGrowth, workingDays);
   const totalGains = groupFinal - totalInv;
@@ -247,6 +330,67 @@ export default function InvestmentCalculator() {
           >
             ← Retour
           </button>
+
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', flexWrap: 'wrap' }}>
+            <button 
+              onClick={saveGroupSimulation}
+              disabled={!isGroupValid}
+              style={{ padding: '10px 20px', borderRadius: '10px', background: isGroupValid ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0,0,0,0.1)', color: isGroupValid ? '#10b981' : theme.textSec, border: 'none', cursor: isGroupValid ? 'pointer' : 'not-allowed', fontWeight: '600', opacity: isGroupValid ? 1 : 0.5 }}
+            >
+              💾 Sauvegarder
+            </button>
+            <button 
+              onClick={() => setShowGroupHistory(!showGroupHistory)}
+              style={{ padding: '10px 20px', borderRadius: '10px', background: showGroupHistory ? 'rgba(245, 158, 11, 0.2)' : theme.cardBg, color: showGroupHistory ? '#f59e0b' : theme.text, border: `2px solid ${showGroupHistory ? '#f59e0b' : theme.cardBorder}`, cursor: 'pointer', fontWeight: '600' }}
+            >
+              📊 Historique ({savedGroupSimulations.length})
+            </button>
+            <button 
+              onClick={() => exportResults(true)}
+              disabled={!isGroupValid}
+              style={{ padding: '10px 20px', borderRadius: '10px', background: isGroupValid ? 'rgba(59, 130, 246, 0.2)' : 'rgba(0,0,0,0.1)', color: isGroupValid ? '#3b82f6' : theme.textSec, border: 'none', cursor: isGroupValid ? 'pointer' : 'not-allowed', fontWeight: '600', opacity: isGroupValid ? 1 : 0.5 }}
+            >
+              📄 Copier les résultats
+            </button>
+          </div>
+
+          {showGroupHistory && (
+            <Card>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>📊 Historique des Simulations de Groupe</h2>
+              {savedGroupSimulations.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: theme.textSec }}>Aucune simulation de groupe sauvegardée</div>
+              ) : (
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  {savedGroupSimulations.map((sim) => (
+                    <div key={sim.id} style={{ padding: '15px', background: theme.hoverBg, borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.85rem', color: theme.textSec }}>{sim.date}</div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: '600', marginTop: '5px' }}>{sim.fund}</div>
+                        <div style={{ fontSize: '0.9rem', marginTop: '5px', color: theme.textSec }}>
+                          👥 {sim.members.length} membres • {formatCurrency(sim.totalInvested)} → {formatCurrency(sim.finalCapital)}
+                          <span style={{ color: '#10b981', fontWeight: '700', marginLeft: '8px' }}>+{formatPercent(sim.roi)}</span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button 
+                          onClick={() => loadGroupSimulation(sim)} 
+                          style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', cursor: 'pointer', border: 'none', fontSize: '0.9rem', fontWeight: '600' }}
+                        >
+                          📥 Charger
+                        </button>
+                        <button 
+                          onClick={() => deleteGroupSimulation(sim.id)} 
+                          style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', cursor: 'pointer', border: 'none', fontSize: '1.2rem' }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
           
           <h1 style={{ fontSize: '2.5rem', fontWeight: '800', background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '10px' }}>
             👥 Simulateur de Groupe
@@ -274,12 +418,24 @@ export default function InvestmentCalculator() {
                 marginBottom: '20px'
               }}
             >
-              {funds.map(fund => (
-                <option key={fund.name} value={fund.name}>
-                  {fund.icon} {fund.name} (Min: {formatCurrency(fund.minimum)} • Max: {formatCurrency(fund.maximum)})
-                </option>
-              ))}
+              {funds.map(fund => {
+                const isRecommended = recommendedGroupFunds.some(f => f.name === fund.name);
+                const isTooLow = totalInv < fund.minimum;
+                const isTooHigh = totalInv > fund.maximum;
+                return (
+                  <option key={fund.name} value={fund.name}>
+                    {fund.icon} {fund.name} 
+                    {isRecommended ? ' 🎯 Recommandé' : isTooLow ? ' ⚠️ Minimum non atteint' : isTooHigh ? ' ⚠️ Maximum dépassé' : ''}
+                  </option>
+                );
+              })}
             </select>
+
+            {totalInv > 0 && recommendedGroupFunds.length > 0 && recommendedGroupFunds.length < funds.length && (
+              <div style={{ padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '10px', marginBottom: '20px', fontSize: '0.9rem', color: '#60a5fa', fontWeight: '600' }}>
+                💡 {recommendedGroupFunds.length} fonds compatibles avec votre budget de {formatCurrency(totalInv)}
+              </div>
+            )}
 
             <div style={{ padding: '20px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px' }}>
               <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#a78bfa', marginBottom: '10px' }}>
@@ -446,6 +602,9 @@ export default function InvestmentCalculator() {
           <button onClick={saveSimulation} disabled={!isValid} style={{ padding: '12px 24px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: isValid ? theme.text : theme.textSec, cursor: isValid ? 'pointer' : 'not-allowed', fontWeight: '600', opacity: isValid ? 1 : 0.5 }}>
             💾 Sauvegarder
           </button>
+          <button onClick={() => exportResults(false)} disabled={!isValid} style={{ padding: '12px 24px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: isValid ? theme.text : theme.textSec, cursor: isValid ? 'pointer' : 'not-allowed', fontWeight: '600', opacity: isValid ? 1 : 0.5 }}>
+            📄 Copier
+          </button>
         </div>
 
         {showGoalMode && (
@@ -515,12 +674,24 @@ export default function InvestmentCalculator() {
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>🏦 Fonds d'investissement</h2>
             <select value={selectedFund.name} onChange={(e) => setSelectedFund(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '14px', borderRadius: '12px', background: theme.inputBg, color: theme.text, fontWeight: '600', cursor: 'pointer', marginBottom: '20px', border: 'none' }}>
-              {funds.map(fund => (
-                <option key={fund.name} value={fund.name}>
-                  {fund.icon} {fund.name}
-                </option>
-              ))}
+              {funds.map(fund => {
+                const isRecommended = recommendedFunds.some(f => f.name === fund.name);
+                const isTooLow = amount < fund.minimum;
+                const isTooHigh = amount > fund.maximum;
+                return (
+                  <option key={fund.name} value={fund.name}>
+                    {fund.icon} {fund.name}
+                    {isRecommended ? ' 🎯 Recommandé' : isTooLow ? ' ⚠️ Minimum non atteint' : isTooHigh ? ' ⚠️ Maximum dépassé' : ''}
+                  </option>
+                );
+              })}
             </select>
+
+            {amount > 0 && recommendedFunds.length > 0 && recommendedFunds.length < funds.length && (
+              <div style={{ padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '10px', marginBottom: '20px', fontSize: '0.9rem', color: '#60a5fa', fontWeight: '600' }}>
+                💡 {recommendedFunds.length} fonds compatibles avec {formatCurrency(amount)}
+              </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
               <div style={{ padding: '15px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px' }}>
                 <div style={{ fontSize: '0.8rem', color: theme.textSec, marginBottom: '5px' }}>Taux/jour</div>
@@ -599,7 +770,10 @@ export default function InvestmentCalculator() {
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
           <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Simulateur de Groupe disponible</p>
           <p style={{ marginTop: '25px', fontSize: '0.85rem', opacity: 0.7 }}>
-            Version 1.0.0 • Dernière mise à jour : 16 décembre 2024
+            Version 1.1.0 • Dernière mise à jour : 16 décembre 2024
+          </p>
+          <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6 }}>
+            🆕 Nouveau : Sauvegarde de groupe • Export résultats • Suggestions de fonds
           </p>
         </div>
       </div>
