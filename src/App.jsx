@@ -22,7 +22,7 @@ const viewDescriptions = {
   }
 };
 
-// ✅ COMPOSANT ISOLÉ POUR UNE LIGNE DE MEMBRE
+// ✅ COMPOSANT ISOLÉ POUR UNE LIGNE DE MEMBRE - AVEC ÉTAT LOCAL
 function MemberInputRow({ member, index, theme, onUpdate, onDelete, canDelete }) {
   const [localName, setLocalName] = useState(member.name);
   const [localAmount, setLocalAmount] = useState(member.amount);
@@ -389,11 +389,10 @@ export default function InvestmentCalculator() {
     );
   }
 
-  // PAGE PRINCIPALE - Reste identique mais je ne copie que la structure importante
+  // PAGE PRINCIPALE COMPLÈTE
   return (
     <div style={{ minHeight: '100vh', background: theme.bg, padding: '40px 20px', color: theme.text, fontFamily: 'system-ui' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        {/* En-tête */}
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
           <h1 style={{ fontSize: '3rem', fontWeight: '800', background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '10px' }}>
             Draham Invest Calculator
@@ -411,7 +410,6 @@ export default function InvestmentCalculator() {
           </div>
         </div>
 
-        {/* Section d'aide */}
         {showHelp && (
           <div style={{ background: theme.cardBg, borderRadius: '16px', padding: '25px', marginBottom: '30px', border: `1px solid ${theme.cardBorder}`, boxShadow: theme.shadow }}>
             <h3 style={{ fontSize: '1.2rem', marginBottom: '15px', color: theme.text }}>📚 Guide complet</h3>
@@ -426,7 +424,6 @@ export default function InvestmentCalculator() {
           </div>
         )}
 
-        {/* Boutons de navigation */}
         <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', flexWrap: 'wrap' }}>
           <button onClick={() => setCurrentView('group')} style={{ padding: '12px 24px', borderRadius: '12px', border: '2px solid rgba(236, 72, 153, 0.5)', background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15))', color: '#ec4899', fontSize: '0.95rem', cursor: 'pointer', fontWeight: '700' }}>
             👥 Simulateur de Groupe ✨
@@ -445,11 +442,10 @@ export default function InvestmentCalculator() {
           </button>
         </div>
 
-        {/* Mode Objectif */}
         {showGoalMode && (
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>🎯 Mode Objectif</h2>
-            <p style={{ color: theme.textSec, marginBottom: '20px' }}>Définissez vos gains souhaités</h2>
+            <p style={{ color: theme.textSec, marginBottom: '20px' }}>Définissez vos gains souhaités</p>
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600' }}>Gain souhaité : {formatCurrency(targetGain)}</label>
               <input type="range" min="1000" max="1000000" step="5000" value={targetGain} onChange={(e) => setTargetGain(Number(e.target.value))} style={{ width: '100%' }} />
@@ -461,7 +457,6 @@ export default function InvestmentCalculator() {
           </Card>
         )}
 
-        {/* Historique */}
         {showHistory && (
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>📊 Historique des simulations</h2>
@@ -487,7 +482,6 @@ export default function InvestmentCalculator() {
           </Card>
         )}
 
-        {/* Comparateur */}
         {showComparison && (
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>⚖️ Comparateur de fonds</h2>
@@ -511,15 +505,13 @@ export default function InvestmentCalculator() {
           </Card>
         )}
 
-        {/* Section principale avec les 3 cartes */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', marginBottom: '30px' }}>
-          {/* Card Fonds */}
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>🏦 Fonds d'investissement</h2>
             <select value={selectedFund.name} onChange={(e) => setSelectedFund(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '14px', borderRadius: '12px', background: theme.inputBg, color: theme.text, fontWeight: '600', cursor: 'pointer', marginBottom: '20px', border: 'none' }}>
               {funds.map(fund => (
                 <option key={fund.name} value={fund.name}>
-                  {fund.icon} {fund.name} (Min: {formatCurrency(fund.minimum)} • Max: {formatCurrency(fund.maximum)})
+                  {fund.icon} {fund.name}
                 </option>
               ))}
             </select>
@@ -539,7 +531,6 @@ export default function InvestmentCalculator() {
             </div>
           </Card>
 
-          {/* Card Montant */}
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>💰 Montant à investir</h2>
             <div style={{ textAlign: 'center', padding: '25px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '16px', marginBottom: '20px' }}>
@@ -548,57 +539,21 @@ export default function InvestmentCalculator() {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
-                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))} style={{ width: '50px', height: '50px', borderRadius: '50%', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '1.5rem', cursor: 'pointer' }}>◄</button>
-                <div style={{ flex: 1 }}>
-                  <input type="range" min={selectedFund.minimum} max={maxAmount} step={1000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} style={{ width: '100%' }} />
-                </div>
-                <button onClick={() => setAmount(Math.min(maxAmount, amount + 1000))} style={{ width: '50px', height: '50px', borderRadius: '50%', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '1.5rem', cursor: 'pointer' }}>►</button>
-              </div>
+              <input type="range" min={selectedFund.minimum} max={maxAmount} step={1000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} style={{ width: '100%' }} />
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textSec, marginBottom: '10px' }}>⚡ Ajustement rapide</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 10000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−10K</button>
-                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−1K</button>
-                <button onClick={() => setAmount(Math.min(maxAmount, amount + 1000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+1K</button>
-                <button onClick={() => setAmount(Math.min(maxAmount, amount + 10000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+10K</button>
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '20px' }}>
+              <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 10000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−10K</button>
+              <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−1K</button>
+              <button onClick={() => setAmount(Math.min(maxAmount, amount + 1000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+1K</button>
+              <button onClick={() => setAmount(Math.min(maxAmount, amount + 10000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+10K</button>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textSec, marginBottom: '10px' }}>💡 Suggestions</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                <button onClick={() => setAmount(100000)} disabled={selectedFund.minimum > 100000} style={{ padding: '12px 8px', borderRadius: '8px', border: amount === 100000 ? '2px solid #6366f1' : `2px solid ${theme.cardBorder}`, background: amount === 100000 ? 'rgba(99, 102, 241, 0.1)' : theme.inputBg, color: selectedFund.minimum > 100000 ? theme.textSec : (amount === 100000 ? '#6366f1' : theme.text), fontSize: '0.95rem', fontWeight: '700', cursor: selectedFund.minimum > 100000 ? 'not-allowed' : 'pointer', opacity: selectedFund.minimum > 100000 ? 0.5 : 1 }}>100K</button>
-                <button onClick={() => setAmount(250000)} disabled={selectedFund.minimum > 250000} style={{ padding: '12px 8px', borderRadius: '8px', border: amount === 250000 ? '2px solid #6366f1' : `2px solid ${theme.cardBorder}`, background: amount === 250000 ? 'rgba(99, 102, 241, 0.1)' : theme.inputBg, color: selectedFund.minimum > 250000 ? theme.textSec : (amount === 250000 ? '#6366f1' : theme.text), fontSize: '0.95rem', fontWeight: '700', cursor: selectedFund.minimum > 250000 ? 'not-allowed' : 'pointer', opacity: selectedFund.minimum > 250000 ? 0.5 : 1 }}>250K</button>
-                <button onClick={() => setAmount(500000)} style={{ padding: '12px 8px', borderRadius: '8px', border: amount === 500000 ? '2px solid #6366f1' : `2px solid ${theme.cardBorder}`, background: amount === 500000 ? 'rgba(99, 102, 241, 0.1)' : theme.inputBg, color: amount === 500000 ? '#6366f1' : theme.text, fontSize: '0.95rem', fontWeight: '700', cursor: 'pointer' }}>500K</button>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
-              <button onClick={() => setAmount(selectedFund.minimum)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.textSec, fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>↺ Min</button>
-              <button onClick={() => setAmount(Math.round(amount / 10000) * 10000)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.textSec, fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>⌀ Arrondir</button>
-              <button onClick={() => setAmount(maxAmount)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${theme.cardBorder}`, background: theme.inputBg, color: theme.textSec, fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>↻ Max</button>
-            </div>
-
-            <div style={{ padding: '12px 20px', borderRadius: '12px', background: isValid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)', border: `1px solid ${isValid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}', textAlign: 'center', fontSize: '0.95rem', fontWeight: '600', color: isValid ? '#34d399' : '#f87171', marginBottom: '20px' }}>
+            <div style={{ padding: '12px 20px', borderRadius: '12px', background: isValid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)', border: `1px solid ${isValid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`, textAlign: 'center', fontSize: '0.95rem', fontWeight: '600', color: isValid ? '#34d399' : '#f87171' }}>
               {isValid ? '✓ Montant valide' : '⚠ Montant insuffisant'}
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
-              <div style={{ padding: '15px', background: theme.hoverBg, borderRadius: '12px' }}>
-                <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>Jours ouvrables</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: '800' }}>{workingDays}</div>
-              </div>
-              <div style={{ padding: '15px', background: theme.hoverBg, borderRadius: '12px' }}>
-                <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>Gains/jour</div>
-                <div style={{ fontSize: '1rem', fontWeight: '800', color: '#10b981' }}>{formatCurrency(dailyGainGrowth)}</div>
-              </div>
             </div>
           </Card>
 
-          {/* Card Résultats */}
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>📊 Résultats des simulations</h2>
             {!isValid ? (
@@ -634,10 +589,9 @@ export default function InvestmentCalculator() {
           </Card>
         </div>
 
-        {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: '50px', padding: '20px', color: theme.textSec, fontSize: '0.9rem', borderTop: `1px solid ${theme.cardBorder}` }}>
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
-          <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Nouveau : Simulateur de Groupe disponible</p>
+          <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Simulateur de Groupe disponible</p>
         </div>
       </div>
     </div>
