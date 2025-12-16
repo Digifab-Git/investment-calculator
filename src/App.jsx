@@ -87,6 +87,60 @@ function MemberInputRow({ member, index, theme, onUpdate, onDelete, canDelete })
   );
 }
 
+// ✅ COMPOSANT ISOLÉ POUR L'INPUT DU MONTANT PRINCIPAL - AVEC ÉTAT LOCAL
+function AmountInput({ amount, min, max, theme, onUpdate }) {
+  const [localAmount, setLocalAmount] = useState(amount);
+
+  // Synchroniser avec le prop si le montant change de l'extérieur (boutons, slider)
+  useEffect(() => {
+    setLocalAmount(amount);
+  }, [amount]);
+
+  const handleChange = (e) => {
+    const newValue = e.target.value === '' ? 0 : Number(e.target.value);
+    setLocalAmount(newValue);
+  };
+
+  const handleBlur = () => {
+    const validAmount = Math.max(min, Math.min(max, localAmount || min));
+    setLocalAmount(validAmount);
+    if (validAmount !== amount) {
+      onUpdate(validAmount);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.target.blur(); // Déclenche le blur qui valide
+    }
+  };
+
+  return (
+    <input 
+      type="number" 
+      value={localAmount}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      onKeyPress={handleKeyPress}
+      min={min}
+      max={max}
+      step="1000"
+      placeholder="Entrez le montant"
+      style={{ 
+        width: '100%', 
+        padding: '14px', 
+        borderRadius: '12px', 
+        background: theme.inputBg, 
+        color: theme.text, 
+        border: `2px solid ${theme.cardBorder}`, 
+        fontSize: '1.1rem', 
+        fontWeight: '700', 
+        textAlign: 'center'
+      }} 
+    />
+  );
+}
+
 export default function InvestmentCalculator() {
   const funds = [
     { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, maximum: 50000, duration: 12, icon: '💻' },
@@ -716,14 +770,35 @@ export default function InvestmentCalculator() {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.9rem', fontWeight: '600', color: theme.text }}>
+                ✏️ Saisie directe :
+              </label>
+              <AmountInput 
+                amount={amount}
+                min={selectedFund.minimum}
+                max={maxAmount}
+                theme={theme}
+                onUpdate={setAmount}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.9rem', fontWeight: '600', color: theme.text }}>
+                🎚️ Ou utilisez le slider :
+              </label>
               <input type="range" min={selectedFund.minimum} max={maxAmount} step={1000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} style={{ width: '100%' }} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '20px' }}>
-              <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 10000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−10K</button>
-              <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−1K</button>
-              <button onClick={() => setAmount(Math.min(maxAmount, amount + 1000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+1K</button>
-              <button onClick={() => setAmount(Math.min(maxAmount, amount + 10000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+10K</button>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.9rem', fontWeight: '600', color: theme.text }}>
+                🔢 Ou ajustez par paliers :
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 10000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−10K</button>
+                <button onClick={() => setAmount(Math.max(selectedFund.minimum, amount - 1000))} style={{ padding: '10px', borderRadius: '8px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>−1K</button>
+                <button onClick={() => setAmount(Math.min(maxAmount, amount + 1000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+1K</button>
+                <button onClick={() => setAmount(Math.min(maxAmount, amount + 10000))} style={{ padding: '10px', borderRadius: '8px', border: '2px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer' }}>+10K</button>
+              </div>
             </div>
 
             <div style={{ padding: '12px 20px', borderRadius: '12px', background: isValid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)', border: `1px solid ${isValid ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`, textAlign: 'center', fontSize: '0.95rem', fontWeight: '600', color: isValid ? '#34d399' : '#f87171' }}>
@@ -770,10 +845,10 @@ export default function InvestmentCalculator() {
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
           <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Simulateur de Groupe disponible</p>
           <p style={{ marginTop: '25px', fontSize: '0.85rem', opacity: 0.7 }}>
-            Version 1.1.0 • Dernière mise à jour : 16 décembre 2024
+            Version 1.1.1 • Dernière mise à jour : 16 décembre 2024
           </p>
           <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6 }}>
-            🆕 Nouveau : Sauvegarde de groupe • Export résultats • Suggestions de fonds
+            🆕 v1.1 : Sauvegarde de groupe • Export résultats • Suggestions de fonds • Saisie directe montant
           </p>
         </div>
       </div>
