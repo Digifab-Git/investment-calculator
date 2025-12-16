@@ -290,13 +290,13 @@ export default function InvestmentCalculator() {
     return funds.filter(f => investAmount >= f.minimum && investAmount <= f.maximum);
   };
 
-  const recommendedFunds = getRecommendedFunds(amount);
-  const recommendedGroupFunds = getRecommendedFunds(totalInv);
-
   const totalInv = groupMembers.reduce((sum, m) => sum + m.amount, 0);
   const groupFinal = totalInv * Math.pow(1 + selectedFund.rateGrowth, workingDays);
   const totalGains = groupFinal - totalInv;
   const isGroupValid = totalInv >= selectedFund.minimum;
+
+  const recommendedFunds = getRecommendedFunds(amount);
+  const recommendedGroupFunds = getRecommendedFunds(totalInv);
 
   const membersWithCalc = groupMembers.map(m => {
     const percentage = totalInv > 0 ? (m.amount / totalInv) * 100 : 0;
