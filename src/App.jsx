@@ -161,6 +161,10 @@ export default function InvestmentCalculator() {
   const [showHistory, setShowHistory] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   
+  // NOUVEAU : Gestion des dates de démarrage
+  const [showDateSelector, setShowDateSelector] = useState(false);
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]); // Format YYYY-MM-DD
+  
   // NOUVEAU : État pour les simulations de groupe
   const [savedGroupSimulations, setSavedGroupSimulations] = useState([]);
   const [showGroupHistory, setShowGroupHistory] = useState(false);
@@ -229,7 +233,23 @@ export default function InvestmentCalculator() {
 
   const formatPercent = (val) => `${val.toFixed(2)}%`;
 
-  const workingDays = Math.round(selectedFund.duration * 21.4);
+  // NOUVEAU : Calcul de la date de fin selon la méthode LGM
+  const calculateEndDate = (start, durationMonths) => {
+    const startD = new Date(start);
+    const endD = new Date(startD);
+    endD.setMonth(endD.getMonth() + durationMonths);
+    return endD;
+  };
+
+  const formatDate = (date) => {
+    if (typeof date === 'string') date = new Date(date);
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  const endDate = calculateEndDate(startDate, selectedFund.duration);
+  const calendarDays = Math.floor((endDate - new Date(startDate)) / (1000 * 60 * 60 * 24));
+
+  const workingDays = selectedFund.duration * 20; // ✅ Formule LGM : 20 jours ouvrables/mois
   const maxAmount = selectedFund.maximum; // ✅ Utilise le vrai maximum du fonds
   
   const dailyGainIncome = amount * selectedFund.rateIncome;
@@ -243,7 +263,7 @@ export default function InvestmentCalculator() {
   const roi = ((compoundView - amount) / amount) * 100;
   const isValid = amount >= selectedFund.minimum;
 
-  const compareWorkingDays = Math.round(compareWith.duration * 21.4);
+  const compareWorkingDays = compareWith.duration * 20; // ✅ Formule LGM
   const compareCompoundView = amount * Math.pow(1 + compareWith.rateGrowth, compareWorkingDays);
   const compareRoi = ((compareCompoundView - amount) / amount) * 100;
 
@@ -763,6 +783,80 @@ export default function InvestmentCalculator() {
           </Card>
 
           <Card>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>📅 Période d'investissement</h2>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: '600' }}>Mode de calcul :</span>
+                <button 
+                  onClick={() => setShowDateSelector(!showDateSelector)}
+                  style={{ 
+                    padding: '8px 16px', 
+                    borderRadius: '8px', 
+                    background: showDateSelector ? 'rgba(59, 130, 246, 0.2)' : theme.cardBg, 
+                    color: showDateSelector ? '#3b82f6' : theme.text, 
+                    border: `2px solid ${showDateSelector ? '#3b82f6' : theme.cardBorder}`, 
+                    cursor: 'pointer', 
+                    fontWeight: '600',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  {showDateSelector ? '📅 Par dates' : '⏱️ Par durée'}
+                </button>
+              </div>
+
+              {showDateSelector && (
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: '600', color: theme.text }}>
+                    📆 Date de démarrage :
+                  </label>
+                  <input 
+                    type="date" 
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    style={{ 
+                      width: '100%', 
+                      padding: '12px', 
+                      borderRadius: '8px', 
+                      background: theme.inputBg, 
+                      color: theme.text, 
+                      border: `2px solid ${theme.cardBorder}`, 
+                      fontSize: '1rem', 
+                      fontWeight: '600'
+                    }} 
+                  />
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.05))', borderRadius: '14px' }}>
+              <div style={{ display: 'grid', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.85rem', color: theme.textSec }}>🚀 Début :</span>
+                  <span style={{ fontSize: '1rem', fontWeight: '700', color: '#a78bfa' }}>{formatDate(startDate)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.85rem', color: theme.textSec }}>🏁 Fin :</span>
+                  <span style={{ fontSize: '1rem', fontWeight: '700', color: '#10b981' }}>{formatDate(endDate)}</span>
+                </div>
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '8px 0' }}></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.85rem', color: theme.textSec }}>📊 Durée :</span>
+                  <span style={{ fontSize: '0.95rem', fontWeight: '600', color: theme.text }}>{selectedFund.duration} mois ({calendarDays} jours calendaires)</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.85rem', color: theme.textSec }}>💼 Jours ouvrables :</span>
+                  <span style={{ fontSize: '1.2rem', fontWeight: '800', color: '#ec4899' }}>{workingDays} jours</span>
+                </div>
+              </div>
+              
+              <div style={{ marginTop: '15px', padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '10px', fontSize: '0.85rem', color: '#60a5fa', lineHeight: '1.5' }}>
+                💡 Méthode LGM : 20 jours ouvrables par mois (calendrier hors weekends et jours fériés)
+              </div>
+            </div>
+          </Card>
+
+          <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>💰 Montant à investir</h2>
             <div style={{ textAlign: 'center', padding: '25px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '16px', marginBottom: '20px' }}>
               <div style={{ fontSize: '0.9rem', color: theme.textSec, marginBottom: '8px' }}>Capital investi</div>
@@ -845,13 +939,13 @@ export default function InvestmentCalculator() {
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
           <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Simulateur de Groupe disponible</p>
           <p style={{ marginTop: '25px', fontSize: '0.85rem', opacity: 0.7 }}>
-            Version 1.1.2 • Dernière mise à jour : 16 décembre 2024
+            Version 1.2.0 • Dernière mise à jour : 16 décembre 2024
           </p>
           <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6 }}>
-            🆕 v1.1 : Sauvegarde de groupe • Export résultats • Suggestions de fonds • Saisie directe montant
+            🆕 v1.2 : Formule LGM officielle (20j/mois) • Sélection date de démarrage • Calcul dates automatique
           </p>
           <p style={{ marginTop: '5px', fontSize: '0.75rem', opacity: 0.5 }}>
-            🔧 v1.1.2 : Correction limite maximum des fonds
+            v1.1 : Sauvegarde groupe • Export • Suggestions • Saisie directe
           </p>
         </div>
       </div>
