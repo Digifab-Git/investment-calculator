@@ -230,7 +230,7 @@ export default function InvestmentCalculator() {
   const formatPercent = (val) => `${val.toFixed(2)}%`;
 
   const workingDays = Math.round(selectedFund.duration * 21.4);
-  const maxAmount = Math.max(500000, selectedFund.minimum * 2);
+  const maxAmount = selectedFund.maximum; // ✅ Utilise le vrai maximum du fonds
   
   const dailyGainIncome = amount * selectedFund.rateIncome;
   const dailyGainGrowth = amount * selectedFund.rateGrowth;
@@ -845,10 +845,13 @@ export default function InvestmentCalculator() {
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
           <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Simulateur de Groupe disponible</p>
           <p style={{ marginTop: '25px', fontSize: '0.85rem', opacity: 0.7 }}>
-            Version 1.1.1 • Dernière mise à jour : 16 décembre 2024
+            Version 1.1.2 • Dernière mise à jour : 16 décembre 2024
           </p>
           <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6 }}>
             🆕 v1.1 : Sauvegarde de groupe • Export résultats • Suggestions de fonds • Saisie directe montant
+          </p>
+          <p style={{ marginTop: '5px', fontSize: '0.75rem', opacity: 0.5 }}>
+            🔧 v1.1.2 : Correction limite maximum des fonds
           </p>
         </div>
       </div>
