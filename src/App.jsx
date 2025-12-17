@@ -143,7 +143,7 @@ function AmountInput({ amount, min, max, theme, onUpdate }) {
 
 export default function InvestmentCalculator() {
   const funds = [
-    { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, maximum: 50000, duration: 10, icon: '💻' },
+    { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, maximum: 50000, duration: 12, icon: '💻' },
     { name: 'Energy and Natural Resources Fund', rateIncome: 0.006, rateGrowth: 0.0065, minimum: 10000, maximum: 100000, duration: 10, icon: '⚡' },
     { name: 'Fonds pour les Marchés Émergents', rateIncome: 0.009, rateGrowth: 0.010, minimum: 250000, maximum: 1000000, duration: 10, icon: '🌍' },
     { name: 'Fonds International LGMCORP', rateIncome: 0.012, rateGrowth: 0.0125, minimum: 500000, maximum: 1000000, duration: 10, icon: '🌟' }
@@ -557,7 +557,7 @@ export default function InvestmentCalculator() {
                 const isTooHigh = totalInv > fund.maximum;
                 return (
                   <option key={fund.name} value={fund.name}>
-                    {fund.icon} {fund.name} 
+                    {fund.icon} {fund.name} (Min: {formatCurrency(fund.minimum)})
                     {isRecommended ? ' 🎯 Recommandé' : isTooLow ? ' ⚠️ Minimum non atteint' : isTooHigh ? ' ⚠️ Maximum dépassé' : ''}
                   </option>
                 );
@@ -856,7 +856,9 @@ export default function InvestmentCalculator() {
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>⚖️ Comparateur de fonds</h2>
             <select value={compareWith.name} onChange={(e) => setCompareWith(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: theme.inputBg, color: theme.text, border: 'none', marginBottom: '20px', fontWeight: '600' }}>
               {funds.map(fund => (
-                <option key={fund.name} value={fund.name} disabled={fund.name === selectedFund.name}>{fund.icon} {fund.name}</option>
+                <option key={fund.name} value={fund.name} disabled={fund.name === selectedFund.name}>
+                  {fund.icon} {fund.name} (Min: {formatCurrency(fund.minimum)})
+                </option>
               ))}
             </select>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
@@ -884,7 +886,7 @@ export default function InvestmentCalculator() {
                 const isTooHigh = amount > fund.maximum;
                 return (
                   <option key={fund.name} value={fund.name}>
-                    {fund.icon} {fund.name}
+                    {fund.icon} {fund.name} (Min: {formatCurrency(fund.minimum)})
                     {isRecommended ? ' 🎯 Recommandé' : isTooLow ? ' ⚠️ Minimum non atteint' : isTooHigh ? ' ⚠️ Maximum dépassé' : ''}
                   </option>
                 );
@@ -1069,13 +1071,13 @@ export default function InvestmentCalculator() {
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
           <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Simulateur de Groupe disponible</p>
           <p style={{ marginTop: '25px', fontSize: '0.85rem', opacity: 0.7 }}>
-            Version 1.3.0 • Dernière mise à jour : 16 décembre 2024
+            Version 1.3.1 • Dernière mise à jour : 17 décembre 2024
           </p>
           <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6' }}>
-            🆕 v1.3.0 : Compound réaliste avec seuil de réinvestissement 100 $ (système officiel LGM)
+            🆕 v1.3.1 : Technology 12 mois • Montants min. dans listes
           </p>
           <p style={{ marginTop: '5px', fontSize: '0.75rem', opacity: 0.5 }}>
-            v1.2 : Growth & Compound groupe • Formule LGM 20j/mois • Dates • v1.1 : Sauvegarde & Export
+            v1.3.0 : Compound réaliste (seuil 100 $) • v1.2 : Formule LGM 20j/mois • v1.1 : Sauvegarde & Export
           </p>
         </div>
       </div>
