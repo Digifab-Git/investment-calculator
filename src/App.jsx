@@ -1073,7 +1073,7 @@ export default function InvestmentCalculator() {
           <p style={{ marginTop: '25px', fontSize: '0.85rem', opacity: 0.7 }}>
             Version 1.3.1 • Dernière mise à jour : 17 décembre 2024
           </p>
-          <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6' }}>
+          <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6 }}>
             🆕 v1.3.1 : Technology 12 mois • Montants min. dans listes
           </p>
           <p style={{ marginTop: '5px', fontSize: '0.75rem', opacity: 0.5 }}>
