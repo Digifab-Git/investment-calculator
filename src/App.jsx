@@ -233,6 +233,36 @@ export default function InvestmentCalculator() {
 
   const formatPercent = (val) => `${val.toFixed(2)}%`;
 
+  // ✅ NOUVELLE FONCTION : Compound réaliste avec seuil de réinvestissement de 100 $
+  const calculateCompoundRealistic = (initialCapital, dailyRate, days, threshold = 100) => {
+    let currentCapital = initialCapital;
+    let accumulatedGains = 0;
+    
+    for (let day = 1; day <= days; day++) {
+      // Gain quotidien basé sur le capital actuel
+      const dailyGain = currentCapital * dailyRate;
+      
+      // Si le gain quotidien >= 100 $ : réinvestit immédiatement (compound quotidien)
+      if (dailyGain >= threshold) {
+        currentCapital += dailyGain;
+      } 
+      // Sinon : accumule jusqu'à atteindre 100 $
+      else {
+        accumulatedGains += dailyGain;
+        
+        // Quand on atteint 100 $, on réinvestit par tranches de 100 $
+        if (accumulatedGains >= threshold) {
+          const toReinvest = Math.floor(accumulatedGains / threshold) * threshold;
+          currentCapital += toReinvest;
+          accumulatedGains -= toReinvest;
+        }
+      }
+    }
+    
+    // Capital final = capital actuel + gains non réinvestis
+    return currentCapital + accumulatedGains;
+  };
+
   // NOUVEAU : Calcul de la date de fin selon la méthode LGM
   const calculateEndDate = (start, durationMonths) => {
     const startD = new Date(start);
@@ -256,7 +286,7 @@ export default function InvestmentCalculator() {
   const dailyGainGrowth = amount * selectedFund.rateGrowth;
   const incomeView = amount + (dailyGainIncome * workingDays);
   const growthView = amount + (dailyGainGrowth * workingDays);
-  const compoundView = amount * Math.pow(1 + selectedFund.rateGrowth, workingDays);
+  const compoundView = calculateCompoundRealistic(amount, selectedFund.rateGrowth, workingDays, 100);
   const incomeGain = incomeView - amount;
   const growthGain = growthView - amount;
   const compoundGain = compoundView - amount;
@@ -264,7 +294,7 @@ export default function InvestmentCalculator() {
   const isValid = amount >= selectedFund.minimum;
 
   const compareWorkingDays = compareWith.duration * 20; // ✅ Formule LGM
-  const compareCompoundView = amount * Math.pow(1 + compareWith.rateGrowth, compareWorkingDays);
+  const compareCompoundView = calculateCompoundRealistic(amount, compareWith.rateGrowth, compareWorkingDays, 100);
   const compareRoi = ((compareCompoundView - amount) / amount) * 100;
 
   const calculateRequiredInvestment = () => {
@@ -386,7 +416,7 @@ export default function InvestmentCalculator() {
   const totalGainsGrowth = groupGrowthView - totalInv;
   
   // Calculs Compound View (gains composés)
-  const groupCompoundView = totalInv * Math.pow(1 + selectedFund.rateGrowth, workingDays);
+  const groupCompoundView = calculateCompoundRealistic(totalInv, selectedFund.rateGrowth, workingDays, 100);
   const totalGainsCompound = groupCompoundView - totalInv;
   
   const isGroupValid = totalInv >= selectedFund.minimum;
@@ -668,6 +698,16 @@ export default function InvestmentCalculator() {
                   <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '14px' }}>
                     <div style={{ fontSize: '0.85rem', color: theme.textSec, marginBottom: '8px' }}>📊 ROI</div>
                     <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#10b981' }}>+{formatPercent(((groupCompoundView - totalInv) / totalInv) * 100)}</div>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', fontSize: '0.9rem', color: '#10b981', lineHeight: '1.6' }}>
+                  <div style={{ fontWeight: '700', marginBottom: '8px' }}>💡 Système de compound LGM :</div>
+                  <div style={{ fontSize: '0.85rem' }}>
+                    • Seuil de réinvestissement : <strong>100 $ minimum</strong><br />
+                    • Petits montants (gain &lt; 100 $/jour) : Accumulation jusqu'à 100 $, puis réinvestissement<br />
+                    • Gros montants (gain ≥ 100 $/jour) : Réinvestissement quotidien automatique<br />
+                    • Ce calcul reflète le système réel de LGM pour des résultats précis
                   </div>
                 </div>
 
@@ -1029,13 +1069,13 @@ export default function InvestmentCalculator() {
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
           <p style={{ marginTop: '15px', color: '#ec4899', fontWeight: '600' }}>✨ Simulateur de Groupe disponible</p>
           <p style={{ marginTop: '25px', fontSize: '0.85rem', opacity: 0.7 }}>
-            Version 1.2.1 • Dernière mise à jour : 16 décembre 2024
+            Version 1.3.0 • Dernière mise à jour : 16 décembre 2024
           </p>
-          <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6 }}>
-            🆕 v1.2.1 : Growth & Compound View dans simulateur de groupe
+          <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6' }}>
+            🆕 v1.3.0 : Compound réaliste avec seuil de réinvestissement 100 $ (système officiel LGM)
           </p>
           <p style={{ marginTop: '5px', fontSize: '0.75rem', opacity: 0.5 }}>
-            v1.2 : Formule LGM • Dates • v1.1 : Sauvegarde • Export • Suggestions
+            v1.2 : Growth & Compound groupe • Formule LGM 20j/mois • Dates • v1.1 : Sauvegarde & Export
           </p>
         </div>
       </div>
