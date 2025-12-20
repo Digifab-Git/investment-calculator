@@ -324,16 +324,22 @@ export default function InvestmentCalculator() {
       const maxGain = maxCompound - fund.maximum;
       
       if (maxGain < targetGain) {
-        // Même avec le max, on n'atteint pas l'objectif
+        // Même avec le max, on n'atteint pas l'objectif → ce fonds ne convient pas
         return;
       }
       
-      // Vérifier si avec le minimum on dépasse déjà l'objectif
+      // Vérifier si avec le minimum on dépasse déjà TROP l'objectif
       const minCompound = calculateCompoundRealistic(fund.minimum, fund.rateGrowth, days, 100);
       const minGain = minCompound - fund.minimum;
       
+      // Si le minimum génère déjà plus de 2x l'objectif, ce fonds est trop puissant
+      if (minGain > targetGain * 2) {
+        // Le fonds est trop puissant pour cet objectif → on ne l'affiche pas
+        return;
+      }
+      
+      // Si le minimum génère entre 1x et 2x l'objectif, on utilise le minimum
       if (minGain >= targetGain) {
-        // Le minimum suffit déjà
         requiredCapital = fund.minimum;
         finalResult = minCompound;
       } else {
