@@ -310,55 +310,62 @@ export default function InvestmentCalculator() {
   const compareCompoundView = calculateCompoundRealistic(amount, compareWith.rateGrowth, compareWorkingDays, 100);
   const compareRoi = ((compareCompoundView - amount) / amount) * 100;
 
-  // ✅ NOUVEAU : Calcul intelligent pour le Mode Objectif avec limite étendue
+  // ✅ NOUVEAU : Calcul du montant MINIMUM requis pour atteindre l'objectif de gains
   const calculateGoalResults = () => {
-    const results = funds.map(fund => {
+    const results = [];
+    
+    funds.forEach(fund => {
       const days = fund.duration * 20;
       
-      // Pour chaque fonds, on teste différents montants d'investissement
-      // On cherche le montant qui donne le gain le plus proche de l'objectif
-      let bestCapital = null;
-      let bestResult = null;
-      let bestDifference = Infinity;
+      // On cherche le montant MINIMUM à investir pour atteindre l'objectif
+      // Recherche binaire entre minimum et maximum du fonds
+      let minCapital = fund.minimum;
+      let maxCapital = fund.maximum;
+      let requiredCapital = null;
+      let finalResult = null;
       
-      // Test par tranches entre le min et le max du fonds
-      const step = Math.max(1000, Math.floor((fund.maximum - fund.minimum) / 100));
+      // Vérifier d'abord si c'est même possible avec le maximum du fonds
+      const maxCompound = calculateCompoundRealistic(fund.maximum, fund.rateGrowth, days, 100);
+      const maxGain = maxCompound - fund.maximum;
       
-      for (let capital = fund.minimum; capital <= fund.maximum; capital += step) {
-        const compoundResult = calculateCompoundRealistic(capital, fund.rateGrowth, days, 100);
-        const gain = compoundResult - capital;
-        const difference = Math.abs(gain - targetGain);
-        
-        if (difference < bestDifference) {
-          bestDifference = difference;
-          bestCapital = capital;
-          bestResult = compoundResult;
+      if (maxGain < targetGain) {
+        // Même avec le max, on n'atteint pas l'objectif
+        return;
+      }
+      
+      // Vérifier si avec le minimum on dépasse déjà l'objectif
+      const minCompound = calculateCompoundRealistic(fund.minimum, fund.rateGrowth, days, 100);
+      const minGain = minCompound - fund.minimum;
+      
+      if (minGain >= targetGain) {
+        // Le minimum suffit déjà
+        requiredCapital = fund.minimum;
+        finalResult = minCompound;
+      } else {
+        // Recherche binaire pour trouver le montant exact
+        while (maxCapital - minCapital > 100) {
+          const midCapital = Math.floor((minCapital + maxCapital) / 2);
+          const midCompound = calculateCompoundRealistic(midCapital, fund.rateGrowth, days, 100);
+          const midGain = midCompound - midCapital;
+          
+          if (midGain < targetGain) {
+            minCapital = midCapital;
+          } else {
+            maxCapital = midCapital;
+          }
         }
+        
+        requiredCapital = maxCapital;
+        finalResult = calculateCompoundRealistic(requiredCapital, fund.rateGrowth, days, 100);
       }
       
-      // Test aussi avec le maximum exact du fonds
-      const compoundAtMax = calculateCompoundRealistic(fund.maximum, fund.rateGrowth, days, 100);
-      const gainAtMax = compoundAtMax - fund.maximum;
-      const differenceAtMax = Math.abs(gainAtMax - targetGain);
-      
-      if (differenceAtMax < bestDifference) {
-        bestDifference = differenceAtMax;
-        bestCapital = fund.maximum;
-        bestResult = compoundAtMax;
-      }
-      
-      // Si aucun capital trouvé, on rejette
-      if (!bestCapital) {
-        return null;
-      }
-      
-      // Calcul précis avec le capital trouvé
-      const capital = bestCapital;
+      // Calculs pour les 3 vues avec le capital trouvé
+      const capital = requiredCapital;
       const incomeResult = capital + (capital * fund.rateIncome * days);
       const growthResult = capital + (capital * fund.rateGrowth * days);
-      const compoundResult = calculateCompoundRealistic(capital, fund.rateGrowth, days, 100);
+      const compoundResult = finalResult;
       
-      return {
+      results.push({
         fund: fund,
         requiredCapital: capital,
         incomeGain: incomeResult - capital,
@@ -369,13 +376,12 @@ export default function InvestmentCalculator() {
         compoundFinal: compoundResult,
         roiIncome: ((incomeResult - capital) / capital) * 100,
         roiGrowth: ((growthResult - capital) / capital) * 100,
-        roiCompound: ((compoundResult - capital) / capital) * 100,
-        difference: Math.abs((compoundResult - capital) - targetGain)
-      };
-    }).filter(r => r !== null);
+        roiCompound: ((compoundResult - capital) / capital) * 100
+      });
+    });
     
-    // Trier par différence avec l'objectif (le plus proche en premier)
-    return results.sort((a, b) => a.difference - b.difference);
+    // Trier par montant requis (du plus petit au plus grand)
+    return results.sort((a, b) => a.requiredCapital - b.requiredCapital);
   };
 
   const saveSimulation = () => {
@@ -997,188 +1003,151 @@ export default function InvestmentCalculator() {
                 );
               }
 
-              // Afficher seulement le meilleur fonds (le premier)
-              const bestResult = goalResults[0];
-              
               return (
                 <>
                   {/* Badge de succès */}
                   <div style={{ marginBottom: '25px', padding: '15px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '12px', textAlign: 'center', border: '2px solid rgba(16, 185, 129, 0.3)' }}>
                     <div style={{ fontSize: '1rem', color: '#10b981', fontWeight: '700' }}>
-                      ✅ Objectif réalisable ! Voici votre fonds optimal
+                      ✅ {goalResults.length} fonds compatible{goalResults.length > 1 ? 's' : ''} trouvé{goalResults.length > 1 ? 's' : ''} !
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: theme.textSec, marginTop: '5px' }}>
+                      Triés par montant requis (du moins cher au plus cher)
                     </div>
                   </div>
 
-                  {/* Carte du fonds recommandé */}
-                  <div style={{ 
-                    padding: '30px', 
-                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))', 
-                    borderRadius: '20px',
-                    border: '3px solid #10b981',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}>
-                    {/* Badge "Recommandé" */}
-                    <div style={{ 
-                      position: 'absolute', 
-                      top: '15px', 
-                      right: '15px', 
-                      padding: '8px 16px', 
-                      background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', 
-                      borderRadius: '20px', 
-                      fontSize: '0.85rem', 
-                      fontWeight: '800', 
-                      color: 'white',
-                      boxShadow: '0 4px 12px rgba(251, 191, 36, 0.4)'
-                    }}>
-                      ⭐ RECOMMANDÉ
-                    </div>
-
-                    {/* Header du fonds */}
-                    <div style={{ marginBottom: '25px' }}>
-                      <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{bestResult.fund.icon}</div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#10b981', marginBottom: '8px' }}>
-                        {bestResult.fund.name}
-                      </div>
-                      <div style={{ fontSize: '0.9rem', color: theme.textSec }}>
-                        📅 {bestResult.fund.duration} mois • 📈 {formatPercent(bestResult.fund.rateGrowth * 100)}/jour
-                      </div>
-                    </div>
-
-                    {/* Investissement requis */}
-                    <div style={{ 
-                      padding: '30px', 
-                      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.05))', 
-                      borderRadius: '16px', 
-                      marginBottom: '25px',
-                      textAlign: 'center',
-                      border: '2px solid rgba(99, 102, 241, 0.3)'
-                    }}>
-                      <div style={{ fontSize: '0.95rem', color: theme.textSec, marginBottom: '10px', fontWeight: '600' }}>
-                        💰 Investissement requis
-                      </div>
-                      <div style={{ fontSize: '3rem', fontWeight: '900', color: '#a78bfa', marginBottom: '10px' }}>
-                        {formatCurrency(bestResult.requiredCapital)}
-                      </div>
-                      <div style={{ fontSize: '0.85rem', color: theme.textSec }}>
-                        Entre {formatCurrency(bestResult.fund.minimum)} et {formatCurrency(bestResult.fund.maximum)}
-                      </div>
-                    </div>
-
-                    {/* Résultat Compound (le meilleur) */}
-                    <div style={{ 
-                      padding: '25px', 
-                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.1))', 
-                      borderRadius: '16px',
-                      border: '2px solid #10b981'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <div>
-                          <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#10b981' }}>
-                            🚀 Résultat Compound
-                          </div>
-                          <div style={{ fontSize: '0.8rem', color: theme.textSec, marginTop: '3px' }}>
-                            Avec réinvestissement automatique
-                          </div>
-                        </div>
-                        <div style={{ 
-                          padding: '8px 16px', 
-                          background: '#10b981', 
-                          borderRadius: '12px', 
-                          fontSize: '0.85rem', 
-                          fontWeight: '800', 
-                          color: 'white' 
-                        }}>
-                          ROI: +{formatPercent(bestResult.roiCompound)}
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
-                        <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>
-                          <div style={{ fontSize: '0.8rem', color: theme.textSec, marginBottom: '5px' }}>💵 Gains totaux</div>
-                          <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#10b981' }}>
-                            +{formatCurrency(bestResult.compoundGain)}
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}>
-                          <div style={{ fontSize: '0.8rem', color: theme.textSec, marginBottom: '5px' }}>🎯 Capital final</div>
-                          <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#10b981' }}>
-                            {formatCurrency(bestResult.compoundFinal)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Indicateur de précision */}
-                    {Math.abs(bestResult.compoundGain - targetGain) < Math.max(5000, targetGain * 0.05) && (
-                      <div style={{ 
-                        marginTop: '20px', 
-                        padding: '15px', 
-                        background: 'rgba(16, 185, 129, 0.2)', 
-                        borderRadius: '12px', 
-                        fontSize: '0.9rem', 
-                        color: '#10b981', 
-                        textAlign: 'center', 
-                        fontWeight: '700',
-                        border: '2px solid #10b981'
+                  {/* Liste de TOUS les fonds compatibles */}
+                  <div style={{ display: 'grid', gap: '20px' }}>
+                    {goalResults.map((result, idx) => (
+                      <div key={idx} style={{ 
+                        padding: '25px', 
+                        background: idx === 0 ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))' : 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05))', 
+                        borderRadius: '18px',
+                        border: idx === 0 ? '3px solid #10b981' : `2px solid ${theme.cardBorder}`,
+                        position: 'relative',
+                        overflow: 'hidden'
                       }}>
-                        🎯 Objectif atteint avec une précision de {formatCurrency(Math.abs(bestResult.compoundGain - targetGain))} !
-                      </div>
-                    )}
-                  </div>
+                        {/* Badge pour le plus accessible */}
+                        {idx === 0 && (
+                          <div style={{ 
+                            position: 'absolute', 
+                            top: '15px', 
+                            right: '15px', 
+                            padding: '8px 16px', 
+                            background: 'linear-gradient(135deg, #10b981, #34d399)', 
+                            borderRadius: '20px', 
+                            fontSize: '0.85rem', 
+                            fontWeight: '800', 
+                            color: 'white',
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+                          }}>
+                            💰 PLUS ACCESSIBLE
+                          </div>
+                        )}
 
-                  {/* Autres fonds disponibles */}
-                  {goalResults.length > 1 && (
-                    <div style={{ marginTop: '25px' }}>
-                      <div style={{ fontSize: '0.9rem', color: theme.textSec, marginBottom: '15px', textAlign: 'center', fontWeight: '600' }}>
-                        💡 {goalResults.length - 1} autre{goalResults.length > 2 ? 's' : ''} fonds disponible{goalResults.length > 2 ? 's' : ''} pour cet objectif
-                      </div>
-                      <div style={{ display: 'grid', gap: '12px' }}>
-                        {goalResults.slice(1).map((result, idx) => (
-                          <div 
-                            key={idx}
-                            style={{ 
-                              padding: '18px', 
-                              background: theme.hoverBg, 
-                              borderRadius: '14px',
-                              border: `2px solid ${theme.cardBorder}`,
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              flexWrap: 'wrap',
-                              gap: '10px'
-                            }}
-                          >
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '5px' }}>
-                                {result.fund.icon} {result.fund.name}
-                              </div>
-                              <div style={{ fontSize: '0.85rem', color: theme.textSec }}>
-                                Investir {formatCurrency(result.requiredCapital)} → Gains: +{formatCurrency(result.compoundGain)}
-                              </div>
+                        {/* Header du fonds */}
+                        <div style={{ marginBottom: '20px' }}>
+                          <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{result.fund.icon}</div>
+                          <div style={{ fontSize: '1.3rem', fontWeight: '800', color: idx === 0 ? '#10b981' : '#a78bfa', marginBottom: '8px' }}>
+                            {result.fund.name}
+                          </div>
+                          <div style={{ fontSize: '0.9rem', color: theme.textSec }}>
+                            📅 Durée: {result.fund.duration} mois • 📈 Taux: {formatPercent(result.fund.rateGrowth * 100)}/jour
+                          </div>
+                        </div>
+
+                        {/* MONTANT MINIMUM REQUIS - Le plus important */}
+                        <div style={{ 
+                          padding: '25px', 
+                          background: idx === 0 ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.1))' : 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.05))', 
+                          borderRadius: '14px', 
+                          marginBottom: '20px',
+                          textAlign: 'center',
+                          border: idx === 0 ? '2px solid #10b981' : '2px solid rgba(99, 102, 241, 0.3)'
+                        }}>
+                          <div style={{ fontSize: '0.95rem', color: theme.textSec, marginBottom: '10px', fontWeight: '600' }}>
+                            💰 Montant MINIMUM à investir
+                          </div>
+                          <div style={{ fontSize: '2.8rem', fontWeight: '900', color: idx === 0 ? '#10b981' : '#a78bfa', marginBottom: '10px' }}>
+                            {formatCurrency(result.requiredCapital)}
+                          </div>
+                          <div style={{ fontSize: '0.85rem', color: theme.textSec }}>
+                            Limites du fonds: {formatCurrency(result.fund.minimum)} - {formatCurrency(result.fund.maximum)}
+                          </div>
+                        </div>
+
+                        {/* Résultat Compound */}
+                        <div style={{ 
+                          padding: '20px', 
+                          background: 'rgba(255,255,255,0.05)', 
+                          borderRadius: '12px',
+                          marginBottom: '15px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: '700', color: idx === 0 ? '#10b981' : '#a78bfa' }}>
+                              🚀 Résultat Compound
                             </div>
                             <div style={{ 
-                              padding: '8px 16px', 
-                              background: 'rgba(16, 185, 129, 0.2)', 
+                              padding: '6px 14px', 
+                              background: idx === 0 ? '#10b981' : '#a78bfa', 
                               borderRadius: '10px', 
-                              fontSize: '0.85rem', 
-                              fontWeight: '700', 
-                              color: '#10b981' 
+                              fontSize: '0.8rem', 
+                              fontWeight: '800', 
+                              color: 'white' 
                             }}>
                               ROI: +{formatPercent(result.roiCompound)}
                             </div>
                           </div>
-                        ))}
+
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                            <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
+                              <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>🎯 Objectif de gains</div>
+                              <div style={{ fontSize: '1.2rem', fontWeight: '800', color: idx === 0 ? '#10b981' : '#a78bfa' }}>
+                                {formatCurrency(targetGain)}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
+                              <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💵 Gains réels</div>
+                              <div style={{ fontSize: '1.2rem', fontWeight: '800', color: idx === 0 ? '#10b981' : '#a78bfa' }}>
+                                {formatCurrency(result.compoundGain)}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ marginTop: '12px', textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
+                            <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💼 Capital final</div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: '800', color: idx === 0 ? '#10b981' : '#a78bfa' }}>
+                              {formatCurrency(result.compoundFinal)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Indicateur de précision */}
+                        {Math.abs(result.compoundGain - targetGain) < Math.max(1000, targetGain * 0.02) && (
+                          <div style={{ 
+                            padding: '12px', 
+                            background: 'rgba(16, 185, 129, 0.2)', 
+                            borderRadius: '10px', 
+                            fontSize: '0.85rem', 
+                            color: '#10b981', 
+                            textAlign: 'center', 
+                            fontWeight: '700',
+                            border: '2px solid #10b981'
+                          }}>
+                            🎯 Précision maximale : différence de {formatCurrency(Math.abs(result.compoundGain - targetGain))} seulement !
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
 
                   {/* Astuce */}
                   <div style={{ marginTop: '25px', padding: '18px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '14px', fontSize: '0.9rem', color: '#60a5fa', lineHeight: '1.6', border: `1px solid ${theme.cardBorder}` }}>
-                    <div style={{ fontWeight: '700', marginBottom: '8px' }}>💡 Astuce :</div>
+                    <div style={{ fontWeight: '700', marginBottom: '8px' }}>💡 Comment choisir :</div>
                     <div style={{ fontSize: '0.85rem' }}>
-                      Le mode <strong>Compound</strong> maximise vos gains grâce au réinvestissement automatique (seuil minimum: 100 $).
-                      C'est la meilleure option pour atteindre vos objectifs rapidement !
+                      • <strong>Plus accessible</strong> : Choisissez le premier fonds (montant minimum requis le plus bas)<br />
+                      • <strong>Meilleur ROI</strong> : Comparez les taux de rendement affichés<br />
+                      • <strong>Durée</strong> : Certains fonds sont plus courts (Technology = 12 mois vs 10 mois pour les autres)<br />
+                      • Les résultats sont basés sur le mode <strong>Compound</strong> (réinvestissement automatique, seuil 100 $)
                     </div>
                   </div>
                 </>
