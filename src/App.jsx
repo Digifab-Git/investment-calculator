@@ -321,8 +321,10 @@ export default function InvestmentCalculator() {
       let bestResult = null;
       let bestDifference = Infinity;
       
-      // Test par tranches de 1000 $ entre le min et le max du fonds
-      for (let capital = fund.minimum; capital <= fund.maximum; capital += 1000) {
+      // Test par tranches entre le min et le max du fonds
+      const step = Math.max(1000, Math.floor((fund.maximum - fund.minimum) / 100));
+      
+      for (let capital = fund.minimum; capital <= fund.maximum; capital += step) {
         const compoundResult = calculateCompoundRealistic(capital, fund.rateGrowth, days, 100);
         const gain = compoundResult - capital;
         const difference = Math.abs(gain - targetGain);
@@ -332,13 +334,21 @@ export default function InvestmentCalculator() {
           bestCapital = capital;
           bestResult = compoundResult;
         }
-        
-        // Si on dépasse largement l'objectif, on arrête
-        if (gain > targetGain * 1.5) break;
       }
       
-      // Si aucun capital trouvé ou si la différence est trop grande (>50%), on rejette
-      if (!bestCapital || bestDifference > targetGain * 0.5) {
+      // Test aussi avec le maximum exact du fonds
+      const compoundAtMax = calculateCompoundRealistic(fund.maximum, fund.rateGrowth, days, 100);
+      const gainAtMax = compoundAtMax - fund.maximum;
+      const differenceAtMax = Math.abs(gainAtMax - targetGain);
+      
+      if (differenceAtMax < bestDifference) {
+        bestDifference = differenceAtMax;
+        bestCapital = fund.maximum;
+        bestResult = compoundAtMax;
+      }
+      
+      // Si aucun capital trouvé, on rejette
+      if (!bestCapital) {
         return null;
       }
       
@@ -359,16 +369,13 @@ export default function InvestmentCalculator() {
         compoundFinal: compoundResult,
         roiIncome: ((incomeResult - capital) / capital) * 100,
         roiGrowth: ((growthResult - capital) / capital) * 100,
-        roiCompound: ((compoundResult - capital) / capital) * 100
+        roiCompound: ((compoundResult - capital) / capital) * 100,
+        difference: Math.abs((compoundResult - capital) - targetGain)
       };
     }).filter(r => r !== null);
     
     // Trier par différence avec l'objectif (le plus proche en premier)
-    return results.sort((a, b) => {
-      const diffA = Math.abs(a.compoundGain - targetGain);
-      const diffB = Math.abs(b.compoundGain - targetGain);
-      return diffA - diffB;
-    });
+    return results.sort((a, b) => a.difference - b.difference);
   };
 
   const saveSimulation = () => {
@@ -1230,7 +1237,8 @@ export default function InvestmentCalculator() {
           </Card>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', marginBottom: '30px' }}>
+        {!showGoalMode && !showHistory && !showComparison && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', marginBottom: '30px' }}>
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>🏦 Fonds d'investissement</h2>
             <select value={selectedFund.name} onChange={(e) => setSelectedFund(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '14px', borderRadius: '12px', background: theme.inputBg, color: theme.text, fontWeight: '600', cursor: 'pointer', marginBottom: '20px', border: 'none' }}>
@@ -1420,6 +1428,7 @@ export default function InvestmentCalculator() {
             )}
           </Card>
         </div>
+        )}
 
         <div style={{ textAlign: 'center', marginTop: '50px', padding: '20px', color: theme.textSec, fontSize: '0.9rem', borderTop: `1px solid ${theme.cardBorder}` }}>
           <p>📅 Les gains sont versés uniquement les jours ouvrables</p>
