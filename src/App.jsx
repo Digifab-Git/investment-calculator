@@ -166,8 +166,7 @@ export default function InvestmentCalculator() {
   const [amount, setAmount] = useState(500);
   const [darkMode, setDarkMode] = useState(true);
   const [currentView, setCurrentView] = useState('main');
-  const [showComparison, setShowComparison] = useState(false);
-  const [compareWith, setCompareWith] = useState(funds[1]);
+  const [showEstimation, setShowEstimation] = useState(false);
   const [showGoalMode, setShowGoalMode] = useState(false);
   const [targetGain, setTargetGain] = useState(50000);
   const [savedSimulations, setSavedSimulations] = useState([]);
@@ -305,10 +304,6 @@ export default function InvestmentCalculator() {
   const compoundGain = compoundView - amount;
   const roi = ((compoundView - amount) / amount) * 100;
   const isValid = amount >= selectedFund.minimum;
-
-  const compareWorkingDays = compareWith.duration * 20; // ✅ Formule LGM
-  const compareCompoundView = calculateCompoundRealistic(amount, compareWith.rateGrowth, compareWorkingDays, 100);
-  const compareRoi = ((compareCompoundView - amount) / amount) * 100;
 
   // ✅ NOUVEAU : Calcul du montant MINIMUM requis pour atteindre l'objectif de gains
   const calculateGoalResults = () => {
@@ -877,13 +872,13 @@ export default function InvestmentCalculator() {
           <button onClick={() => setCurrentView('group')} style={{ padding: '12px 24px', borderRadius: '12px', border: '2px solid rgba(236, 72, 153, 0.5)', background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15))', color: '#ec4899', fontSize: '0.95rem', cursor: 'pointer', fontWeight: '700' }}>
             👥 Simulateur de Groupe ✨
           </button>
-          <button onClick={() => { setShowComparison(!showComparison); setShowGoalMode(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showComparison ? '2px solid #3b82f6' : `2px solid ${theme.cardBorder}`, background: showComparison ? 'rgba(59, 130, 246, 0.15)' : theme.cardBg, color: showComparison ? '#3b82f6' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
-            ⚖️ Comparateur
+          <button onClick={() => { setShowEstimation(!showEstimation); setShowGoalMode(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showEstimation ? '2px solid #3b82f6' : `2px solid ${theme.cardBorder}`, background: showEstimation ? 'rgba(59, 130, 246, 0.15)' : theme.cardBg, color: showEstimation ? '#3b82f6' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
+            📊 Estimation
           </button>
-          <button onClick={() => { setShowGoalMode(!showGoalMode); setShowComparison(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showGoalMode ? '2px solid #10b981' : `2px solid ${theme.cardBorder}`, background: showGoalMode ? 'rgba(16, 185, 129, 0.15)' : theme.cardBg, color: showGoalMode ? '#10b981' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
+          <button onClick={() => { setShowGoalMode(!showGoalMode); setShowEstimation(false); setShowHistory(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showGoalMode ? '2px solid #10b981' : `2px solid ${theme.cardBorder}`, background: showGoalMode ? 'rgba(16, 185, 129, 0.15)' : theme.cardBg, color: showGoalMode ? '#10b981' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
             🎯 Mode Objectif
           </button>
-          <button onClick={() => { setShowHistory(!showHistory); setShowComparison(false); setShowGoalMode(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showHistory ? '2px solid #f59e0b' : `2px solid ${theme.cardBorder}`, background: showHistory ? 'rgba(245, 158, 11, 0.15)' : theme.cardBg, color: showHistory ? '#f59e0b' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
+          <button onClick={() => { setShowHistory(!showHistory); setShowEstimation(false); setShowGoalMode(false); }} style={{ padding: '12px 24px', borderRadius: '12px', border: showHistory ? '2px solid #f59e0b' : `2px solid ${theme.cardBorder}`, background: showHistory ? 'rgba(245, 158, 11, 0.15)' : theme.cardBg, color: showHistory ? '#f59e0b' : theme.text, cursor: 'pointer', fontWeight: '600' }}>
             📊 Historique ({savedSimulations.length})
           </button>
           <button onClick={saveSimulation} disabled={!isValid} style={{ padding: '12px 24px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: isValid ? theme.text : theme.textSec, cursor: isValid ? 'pointer' : 'not-allowed', fontWeight: '600', opacity: isValid ? 1 : 0.5 }}>
@@ -1051,7 +1046,7 @@ export default function InvestmentCalculator() {
                             {result.fund.name}
                           </div>
                           <div style={{ fontSize: '0.9rem', color: theme.textSec }}>
-                            📅 Durée: {result.fund.duration} mois • 📈 Taux: {formatPercent(result.fund.rateGrowth * 100)}/jour
+                            📅 Durée: {result.fund.duration} mois • 📈 Taux Income: {formatPercent(result.fund.rateIncome * 100)}/jour • Growth/Compound: {formatPercent(result.fund.rateGrowth * 100)}/jour
                           </div>
                         </div>
 
@@ -1075,48 +1070,181 @@ export default function InvestmentCalculator() {
                           </div>
                         </div>
 
-                        {/* Résultat Compound */}
-                        <div style={{ 
-                          padding: '20px', 
-                          background: 'rgba(255,255,255,0.05)', 
-                          borderRadius: '12px',
-                          marginBottom: '15px'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <div style={{ fontSize: '1rem', fontWeight: '700', color: idx === 0 ? '#10b981' : '#a78bfa' }}>
-                              🚀 Résultat Compound
-                            </div>
+                        {/* LES 3 TYPES D'INVESTISSEMENT */}
+                        <div style={{ marginBottom: '15px' }}>
+                          <div style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '15px', textAlign: 'center', color: theme.text }}>
+                            📊 Résultats selon le type d'investissement
+                          </div>
+
+                          <div style={{ display: 'grid', gap: '15px' }}>
+                            {/* Income View */}
                             <div style={{ 
-                              padding: '6px 14px', 
-                              background: idx === 0 ? '#10b981' : '#a78bfa', 
-                              borderRadius: '10px', 
-                              fontSize: '0.8rem', 
-                              fontWeight: '800', 
-                              color: 'white' 
+                              padding: '18px', 
+                              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))', 
+                              borderRadius: '12px', 
+                              border: '2px solid rgba(239, 68, 68, 0.3)' 
                             }}>
-                              ROI: +{formatPercent(result.roiCompound)}
-                            </div>
-                          </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: '1rem', fontWeight: '700', color: '#ef4444', marginBottom: '4px' }}>
+                                    💰 Income View
+                                  </div>
+                                  <div style={{ fontSize: '0.75rem', color: theme.textSec }}>
+                                    Capital constant, gains retirés quotidiennement
+                                  </div>
+                                </div>
+                                <div style={{ 
+                                  padding: '6px 14px', 
+                                  background: '#ef4444', 
+                                  borderRadius: '10px', 
+                                  fontSize: '0.8rem', 
+                                  fontWeight: '800', 
+                                  color: 'white',
+                                  flexShrink: 0
+                                }}>
+                                  ROI: +{formatPercent(result.roiIncome)}
+                                </div>
+                              </div>
 
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                            <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
-                              <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>🎯 Objectif de gains</div>
-                              <div style={{ fontSize: '1.2rem', fontWeight: '800', color: idx === 0 ? '#10b981' : '#a78bfa' }}>
-                                {formatCurrency(targetGain)}
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                                <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                  <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💵 Gains totaux</div>
+                                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ef4444' }}>
+                                    +{formatCurrency(result.incomeGain)}
+                                  </div>
+                                </div>
+                                <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                  <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💼 Capital final</div>
+                                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ef4444' }}>
+                                    {formatCurrency(result.incomeFinal)}
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                            <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
-                              <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💵 Gains réels</div>
-                              <div style={{ fontSize: '1.2rem', fontWeight: '800', color: idx === 0 ? '#10b981' : '#a78bfa' }}>
-                                {formatCurrency(result.compoundGain)}
+
+                            {/* Growth View */}
+                            <div style={{ 
+                              padding: '18px', 
+                              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))', 
+                              borderRadius: '12px', 
+                              border: '2px solid rgba(59, 130, 246, 0.3)' 
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: '1rem', fontWeight: '700', color: '#3b82f6', marginBottom: '4px' }}>
+                                    📈 Growth View
+                                  </div>
+                                  <div style={{ fontSize: '0.75rem', color: theme.textSec }}>
+                                    Gains accumulés sans réinvestissement
+                                  </div>
+                                </div>
+                                <div style={{ 
+                                  padding: '6px 14px', 
+                                  background: '#3b82f6', 
+                                  borderRadius: '10px', 
+                                  fontSize: '0.8rem', 
+                                  fontWeight: '800', 
+                                  color: 'white',
+                                  flexShrink: 0
+                                }}>
+                                  ROI: +{formatPercent(result.roiGrowth)}
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                                <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                  <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💵 Gains totaux</div>
+                                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#3b82f6' }}>
+                                    +{formatCurrency(result.growthGain)}
+                                  </div>
+                                </div>
+                                <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                  <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💼 Capital final</div>
+                                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#3b82f6' }}>
+                                    {formatCurrency(result.growthFinal)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Compound View */}
+                            <div style={{ 
+                              padding: '18px', 
+                              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', 
+                              borderRadius: '12px', 
+                              border: '2px solid rgba(16, 185, 129, 0.3)' 
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: '1rem', fontWeight: '700', color: '#10b981', marginBottom: '4px' }}>
+                                    🚀 Compound View
+                                  </div>
+                                  <div style={{ fontSize: '0.75rem', color: theme.textSec }}>
+                                    Réinvestissement automatique (seuil 100$)
+                                  </div>
+                                </div>
+                                <div style={{ 
+                                  padding: '6px 14px', 
+                                  background: '#10b981', 
+                                  borderRadius: '10px', 
+                                  fontSize: '0.8rem', 
+                                  fontWeight: '800', 
+                                  color: 'white',
+                                  flexShrink: 0
+                                }}>
+                                  ROI: +{formatPercent(result.roiCompound)}
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                                <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                  <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💵 Gains totaux</div>
+                                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981' }}>
+                                    +{formatCurrency(result.compoundGain)}
+                                  </div>
+                                </div>
+                                <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                  <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💼 Capital final</div>
+                                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981' }}>
+                                    {formatCurrency(result.compoundFinal)}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
+                        </div>
 
-                          <div style={{ marginTop: '12px', textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
-                            <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💼 Capital final</div>
-                            <div style={{ fontSize: '1.4rem', fontWeight: '800', color: idx === 0 ? '#10b981' : '#a78bfa' }}>
-                              {formatCurrency(result.compoundFinal)}
+                        {/* Comparaison avec l'objectif */}
+                        <div style={{ 
+                          padding: '15px', 
+                          background: 'rgba(99, 102, 241, 0.1)', 
+                          borderRadius: '12px',
+                          marginTop: '15px'
+                        }}>
+                          <div style={{ fontSize: '0.85rem', fontWeight: '700', marginBottom: '10px', color: theme.text }}>
+                            🎯 Comparaison avec votre objectif de {formatCurrency(targetGain)}
+                          </div>
+                          <div style={{ display: 'grid', gap: '8px', fontSize: '0.8rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ color: theme.textSec }}>💰 Income :</span>
+                              <span style={{ fontWeight: '700', color: result.incomeGain >= targetGain ? '#10b981' : '#f59e0b' }}>
+                                {result.incomeGain >= targetGain ? '✅' : '⚠️'} {formatCurrency(result.incomeGain)} 
+                                ({result.incomeGain >= targetGain ? '+' : ''}{formatCurrency(result.incomeGain - targetGain)})
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ color: theme.textSec }}>📈 Growth :</span>
+                              <span style={{ fontWeight: '700', color: result.growthGain >= targetGain ? '#10b981' : '#f59e0b' }}>
+                                {result.growthGain >= targetGain ? '✅' : '⚠️'} {formatCurrency(result.growthGain)} 
+                                ({result.growthGain >= targetGain ? '+' : ''}{formatCurrency(result.growthGain - targetGain)})
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ color: theme.textSec }}>🚀 Compound :</span>
+                              <span style={{ fontWeight: '700', color: '#10b981' }}>
+                                ✅ {formatCurrency(result.compoundGain)} 
+                                (+{formatCurrency(result.compoundGain - targetGain)})
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1124,6 +1252,7 @@ export default function InvestmentCalculator() {
                         {/* Indicateur de précision */}
                         {Math.abs(result.compoundGain - targetGain) < Math.max(1000, targetGain * 0.02) && (
                           <div style={{ 
+                            marginTop: '15px',
                             padding: '12px', 
                             background: 'rgba(16, 185, 129, 0.2)', 
                             borderRadius: '10px', 
@@ -1133,7 +1262,7 @@ export default function InvestmentCalculator() {
                             fontWeight: '700',
                             border: '2px solid #10b981'
                           }}>
-                            🎯 Précision maximale : différence de {formatCurrency(Math.abs(result.compoundGain - targetGain))} seulement !
+                            🎯 Précision maximale avec Compound : différence de {formatCurrency(Math.abs(result.compoundGain - targetGain))} seulement !
                           </div>
                         )}
                       </div>
@@ -1181,32 +1310,313 @@ export default function InvestmentCalculator() {
           </Card>
         )}
 
-        {showComparison && (
+        {showEstimation && (
           <Card>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>⚖️ Comparateur de fonds</h2>
-            <select value={compareWith.name} onChange={(e) => setCompareWith(funds.find(f => f.name === e.target.value))} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: theme.inputBg, color: theme.text, border: 'none', marginBottom: '20px', fontWeight: '600' }}>
-              {funds.map(fund => (
-                <option key={fund.name} value={fund.name} disabled={fund.name === selectedFund.name}>
-                  {fund.icon} {fund.name} (Min: {formatCurrency(fund.minimum)})
-                </option>
-              ))}
-            </select>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
-              <div style={{ padding: '20px', background: compoundView > compareCompoundView ? 'rgba(16, 185, 129, 0.15)' : theme.hoverBg, borderRadius: '12px', border: compoundView > compareCompoundView ? '2px solid #10b981' : 'none' }}>
-                <div style={{ fontSize: '0.85rem', color: theme.textSec, marginBottom: '8px' }}>{selectedFund.icon} {selectedFund.name}</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: '800' }}>{formatCurrency(compoundView)}</div>
-                <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: '700', marginTop: '5px' }}>+{formatPercent(roi)}</div>
-              </div>
-              <div style={{ padding: '20px', background: compareCompoundView > compoundView ? 'rgba(16, 185, 129, 0.15)' : theme.hoverBg, borderRadius: '12px', border: compareCompoundView > compoundView ? '2px solid #10b981' : 'none' }}>
-                <div style={{ fontSize: '0.85rem', color: theme.textSec, marginBottom: '8px' }}>{compareWith.icon} {compareWith.name}</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: '800' }}>{formatCurrency(compareCompoundView)}</div>
-                <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: '700', marginTop: '5px' }}>+{formatPercent(compareRoi)}</div>
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📊</div>
+              <h2 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '10px', background: 'linear-gradient(135deg, #3b82f6, #60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Mode Estimation
+              </h2>
+              <p style={{ fontSize: '0.95rem', color: theme.textSec }}>
+                Simulez votre investissement et découvrez tous les fonds accessibles avec vos résultats
+              </p>
+            </div>
+
+            {/* Affichage du montant actuel */}
+            <div style={{ 
+              padding: '25px', 
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.05))', 
+              borderRadius: '14px', 
+              textAlign: 'center',
+              marginBottom: '30px'
+            }}>
+              <div style={{ fontSize: '0.9rem', color: theme.textSec, marginBottom: '8px' }}>💰 Montant à investir</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#a78bfa' }}>{formatCurrency(amount)}</div>
+              <div style={{ fontSize: '0.85rem', color: theme.textSec, marginTop: '10px' }}>
+                ⏱️ Sélectionnez un fonds ci-dessous pour voir les calculs détaillés
               </div>
             </div>
+
+            {/* Liste de TOUS les fonds avec leurs résultats */}
+            {(() => {
+              const compatibleFunds = funds.filter(f => amount >= f.minimum && amount <= f.maximum);
+              const incompatibleFunds = funds.filter(f => amount < f.minimum || amount > f.maximum);
+
+              if (compatibleFunds.length === 0) {
+                return (
+                  <div style={{ padding: '40px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '14px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '15px' }}>⚠️</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '10px', color: '#f87171' }}>
+                      Aucun fonds compatible
+                    </div>
+                    <div style={{ fontSize: '0.95rem', color: theme.textSec }}>
+                      Avec {formatCurrency(amount)}, aucun fonds n'est accessible.
+                      <br />Ajustez votre montant pour voir les options disponibles.
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <>
+                  {/* Badge de succès */}
+                  <div style={{ marginBottom: '25px', padding: '15px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '12px', textAlign: 'center', border: '2px solid rgba(16, 185, 129, 0.3)' }}>
+                    <div style={{ fontSize: '1rem', color: '#10b981', fontWeight: '700' }}>
+                      ✅ {compatibleFunds.length} fonds compatible{compatibleFunds.length > 1 ? 's' : ''} avec {formatCurrency(amount)}
+                    </div>
+                  </div>
+
+                  {/* FONDS COMPATIBLES */}
+                  <div style={{ display: 'grid', gap: '20px', marginBottom: incompatibleFunds.length > 0 ? '30px' : '0' }}>
+                    {compatibleFunds.map((fund, idx) => {
+                      const days = fund.duration * 20;
+                      const incomeResult = amount + (amount * fund.rateIncome * days);
+                      const growthResult = amount + (amount * fund.rateGrowth * days);
+                      const compoundResult = calculateCompoundRealistic(amount, fund.rateGrowth, days, 100);
+
+                      const incomeGain = incomeResult - amount;
+                      const growthGain = growthResult - amount;
+                      const compoundGain = compoundResult - amount;
+
+                      const roiIncome = (incomeGain / amount) * 100;
+                      const roiGrowth = (growthGain / amount) * 100;
+                      const roiCompound = (compoundGain / amount) * 100;
+
+                      return (
+                        <div key={idx} style={{ 
+                          padding: '25px', 
+                          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))', 
+                          borderRadius: '18px',
+                          border: '2px solid rgba(59, 130, 246, 0.3)'
+                        }}>
+                          {/* Header du fonds */}
+                          <div style={{ marginBottom: '20px' }}>
+                            <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{fund.icon}</div>
+                            <div style={{ fontSize: '1.3rem', fontWeight: '800', color: '#3b82f6', marginBottom: '8px' }}>
+                              {fund.name}
+                            </div>
+                            <div style={{ fontSize: '0.9rem', color: theme.textSec }}>
+                              📅 Durée: {fund.duration} mois ({days} jours ouvrables) • 📈 Taux Income: {formatPercent(fund.rateIncome * 100)}/jour • Growth/Compound: {formatPercent(fund.rateGrowth * 100)}/jour
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: theme.textSec, marginTop: '5px' }}>
+                              💰 Limites: {formatCurrency(fund.minimum)} - {formatCurrency(fund.maximum)}
+                            </div>
+                          </div>
+
+                          {/* LES 3 TYPES D'INVESTISSEMENT */}
+                          <div style={{ marginBottom: '15px' }}>
+                            <div style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '15px', textAlign: 'center', color: theme.text }}>
+                              📊 Résultats avec {formatCurrency(amount)}
+                            </div>
+
+                            <div style={{ display: 'grid', gap: '15px' }}>
+                              {/* Income View */}
+                              <div style={{ 
+                                padding: '18px', 
+                                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))', 
+                                borderRadius: '12px', 
+                                border: '2px solid rgba(239, 68, 68, 0.3)' 
+                              }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#ef4444', marginBottom: '4px' }}>
+                                      💰 Income View
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: theme.textSec }}>
+                                      Capital constant, gains retirés quotidiennement
+                                    </div>
+                                  </div>
+                                  <div style={{ 
+                                    padding: '6px 14px', 
+                                    background: '#ef4444', 
+                                    borderRadius: '10px', 
+                                    fontSize: '0.8rem', 
+                                    fontWeight: '800', 
+                                    color: 'white',
+                                    flexShrink: 0
+                                  }}>
+                                    ROI: +{formatPercent(roiIncome)}
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                                  <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                    <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💵 Gains totaux</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ef4444' }}>
+                                      +{formatCurrency(incomeGain)}
+                                    </div>
+                                  </div>
+                                  <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                    <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💼 Capital final</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ef4444' }}>
+                                      {formatCurrency(incomeResult)}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Growth View */}
+                              <div style={{ 
+                                padding: '18px', 
+                                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))', 
+                                borderRadius: '12px', 
+                                border: '2px solid rgba(59, 130, 246, 0.3)' 
+                              }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#3b82f6', marginBottom: '4px' }}>
+                                      📈 Growth View
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: theme.textSec }}>
+                                      Gains accumulés sans réinvestissement
+                                    </div>
+                                  </div>
+                                  <div style={{ 
+                                    padding: '6px 14px', 
+                                    background: '#3b82f6', 
+                                    borderRadius: '10px', 
+                                    fontSize: '0.8rem', 
+                                    fontWeight: '800', 
+                                    color: 'white',
+                                    flexShrink: 0
+                                  }}>
+                                    ROI: +{formatPercent(roiGrowth)}
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                                  <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                    <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💵 Gains totaux</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#3b82f6' }}>
+                                      +{formatCurrency(growthGain)}
+                                    </div>
+                                  </div>
+                                  <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                    <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💼 Capital final</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#3b82f6' }}>
+                                      {formatCurrency(growthResult)}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Compound View */}
+                              <div style={{ 
+                                padding: '18px', 
+                                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', 
+                                borderRadius: '12px', 
+                                border: '2px solid rgba(16, 185, 129, 0.3)' 
+                              }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#10b981', marginBottom: '4px' }}>
+                                      🚀 Compound View
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: theme.textSec }}>
+                                      Réinvestissement automatique (seuil 100$)
+                                    </div>
+                                  </div>
+                                  <div style={{ 
+                                    padding: '6px 14px', 
+                                    background: '#10b981', 
+                                    borderRadius: '10px', 
+                                    fontSize: '0.8rem', 
+                                    fontWeight: '800', 
+                                    color: 'white',
+                                    flexShrink: 0
+                                  }}>
+                                    ROI: +{formatPercent(roiCompound)}
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                                  <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                    <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💵 Gains totaux</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981' }}>
+                                      +{formatCurrency(compoundGain)}
+                                    </div>
+                                  </div>
+                                  <div style={{ textAlign: 'center', padding: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                                    <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💼 Capital final</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981' }}>
+                                      {formatCurrency(compoundResult)}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* FONDS INCOMPATIBLES (si existants) */}
+                  {incompatibleFunds.length > 0 && (
+                    <>
+                      <div style={{ marginTop: '30px', marginBottom: '15px', padding: '12px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '10px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: '600' }}>
+                          ⚠️ {incompatibleFunds.length} fonds non accessible{incompatibleFunds.length > 1 ? 's' : ''} avec {formatCurrency(amount)}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gap: '12px' }}>
+                        {incompatibleFunds.map((fund, idx) => {
+                          const isTooLow = amount < fund.minimum;
+                          const isTooHigh = amount > fund.maximum;
+
+                          return (
+                            <div key={idx} style={{ 
+                              padding: '18px', 
+                              background: 'rgba(245, 158, 11, 0.05)', 
+                              borderRadius: '12px',
+                              border: '2px solid rgba(245, 158, 11, 0.2)',
+                              opacity: 0.6
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '5px' }}>
+                                    {fund.icon} {fund.name}
+                                  </div>
+                                  <div style={{ fontSize: '0.85rem', color: theme.textSec }}>
+                                    Limites: {formatCurrency(fund.minimum)} - {formatCurrency(fund.maximum)}
+                                  </div>
+                                </div>
+                                <div style={{ 
+                                  padding: '8px 16px', 
+                                  background: 'rgba(245, 158, 11, 0.2)', 
+                                  borderRadius: '10px', 
+                                  fontSize: '0.85rem', 
+                                  fontWeight: '700', 
+                                  color: '#f59e0b',
+                                  flexShrink: 0
+                                }}>
+                                  {isTooLow ? `⬇️ Min: ${formatCurrency(fund.minimum)}` : `⬆️ Max: ${formatCurrency(fund.maximum)}`}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Astuce */}
+                  <div style={{ marginTop: '25px', padding: '18px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '14px', fontSize: '0.9rem', color: '#60a5fa', lineHeight: '1.6', border: `1px solid ${theme.cardBorder}` }}>
+                    <div style={{ fontWeight: '700', marginBottom: '8px' }}>💡 Conseil :</div>
+                    <div style={{ fontSize: '0.85rem' }}>
+                      • <strong>Income</strong> : Retraits réguliers, capital préservé<br />
+                      • <strong>Growth</strong> : Accumulation progressive sans réinvestissement<br />
+                      • <strong>Compound</strong> : Maximise les gains via le réinvestissement automatique (seuil 100 $)
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </Card>
         )}
 
-        {!showGoalMode && !showHistory && !showComparison && (
+        {!showGoalMode && !showHistory && !showEstimation && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', marginBottom: '30px' }}>
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>🏦 Fonds d'investissement</h2>
