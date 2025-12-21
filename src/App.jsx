@@ -940,12 +940,8 @@ export default function InvestmentCalculator() {
           </Card>
         )}
 
-        {/* Mode Objectif - À COMPLÉTER dans le prochain message car limite de longueur */}
-      </div>
-    </div>
-  );
-
-{showGoalMode && (
+        {/* Mode Objectif */}
+        {showGoalMode && (
   <Card>
     <div style={{ textAlign: 'center', marginBottom: '30px' }}>
       <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🎯</div>
@@ -1195,78 +1191,78 @@ export default function InvestmentCalculator() {
   </Card>
 )}
 
-{/* HISTORIQUE */}
-{showHistory && (
-  <Card>
-    <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-      <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📚</div>
-      <h2 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '10px', background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-        Historique
-      </h2>
-      <p style={{ fontSize: '0.95rem', color: theme.textSec }}>
-        Vos simulations sauvegardées ({savedSimulations.length})
-      </p>
-    </div>
-
-    {savedSimulations.length === 0 ? (
-      <div style={{ padding: '40px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '14px', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📭</div>
-        <div style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '10px', color: '#f59e0b' }}>
-          Aucune simulation sauvegardée
-        </div>
-        <div style={{ fontSize: '0.95rem', color: theme.textSec }}>
-          Effectuez une simulation et cliquez sur "Sauvegarder"
-        </div>
-      </div>
-    ) : (
-      <>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
-          <button onClick={() => setSavedSimulations([])} style={{ padding: '10px 20px', borderRadius: '10px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: '#ef4444', cursor: 'pointer', fontWeight: '600' }}>
-            🗑️ Tout supprimer
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gap: '15px' }}>
-          {savedSimulations.map((sim) => (
-            <div key={sim.id} style={{ padding: '20px', background: theme.hoverBg, borderRadius: '14px', border: `2px solid ${theme.cardBorder}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
-                <div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '5px' }}>{sim.fund}</div>
-                  <div style={{ fontSize: '0.85rem', color: theme.textSec }}>{sim.date}</div>
-                </div>
-                <button 
-                  onClick={() => setSavedSimulations(savedSimulations.filter(s => s.id !== sim.id))}
-                  style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: '600' }}
-                >
-                  🗑️
-                </button>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
-                <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '4px' }}>💰 Montant</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.text }}>{formatCurrency(sim.amount)}</div>
-                </div>
-                <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '4px' }}>💰 Income</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ef4444' }}>+{formatPercent(sim.roiIncome)}%</div>
-                </div>
-                <div style={{ padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '4px' }}>📈 Growth</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#3b82f6' }}>+{formatPercent(sim.roiGrowth)}%</div>
-                </div>
-                <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '4px' }}>🚀 Compound</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981' }}>+{formatPercent(sim.roiCompound)}%</div>
-                </div>
-              </div>
+        {/* HISTORIQUE */}
+        {showHistory && (
+          <Card>
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📚</div>
+              <h2 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '10px', background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Historique
+              </h2>
+              <p style={{ fontSize: '0.95rem', color: theme.textSec }}>
+                Vos simulations sauvegardées ({savedSimulations.length})
+              </p>
             </div>
-          ))}
-        </div>
-      </>
-    )}
-  </Card>
-)}
+        
+            {savedSimulations.length === 0 ? (
+              <div style={{ padding: '40px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '15px' }}>📭</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '10px', color: '#f59e0b' }}>
+                  Aucune simulation sauvegardée
+                </div>
+                <div style={{ fontSize: '0.95rem', color: theme.textSec }}>
+                  Effectuez une simulation et cliquez sur "Sauvegarder"
+                </div>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+                  <button onClick={() => setSavedSimulations([])} style={{ padding: '10px 20px', borderRadius: '10px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: '#ef4444', cursor: 'pointer', fontWeight: '600' }}>
+                    🗑️ Tout supprimer
+                  </button>
+                </div>
+        
+                <div style={{ display: 'grid', gap: '15px' }}>
+                  {savedSimulations.map((sim) => (
+                    <div key={sim.id} style={{ padding: '20px', background: theme.hoverBg, borderRadius: '14px', border: `2px solid ${theme.cardBorder}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
+                        <div>
+                          <div style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '5px' }}>{sim.fund}</div>
+                          <div style={{ fontSize: '0.85rem', color: theme.textSec }}>{sim.date}</div>
+                        </div>
+                        <button 
+                          onClick={() => setSavedSimulations(savedSimulations.filter(s => s.id !== sim.id))}
+                          style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: '600' }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+        
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
+                        <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '4px' }}>💰 Montant</div>
+                          <div style={{ fontSize: '1.1rem', fontWeight: '800', color: theme.text }}>{formatCurrency(sim.amount)}</div>
+                        </div>
+                        <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '10px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '4px' }}>💰 Income</div>
+                          <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ef4444' }}>+{formatPercent(sim.roiIncome)}%</div>
+                        </div>
+                        <div style={{ padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '10px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '4px' }}>📈 Growth</div>
+                          <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#3b82f6' }}>+{formatPercent(sim.roiGrowth)}%</div>
+                        </div>
+                        <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '10px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '4px' }}>🚀 Compound</div>
+                          <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#10b981' }}>+{formatPercent(sim.roiCompound)}%</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </Card>
+        )}
       </div>
     </div>
   );
