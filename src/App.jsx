@@ -168,6 +168,12 @@ export default function InvestmentCalculator() {
   const [showEstimation, setShowEstimation] = useState(false);
   const [showGoalMode, setShowGoalMode] = useState(false);
   const [targetGain, setTargetGain] = useState(50000);
+  const [targetGainInput, setTargetGainInput] = useState('50000');
+  
+  // Synchroniser l'input quand targetGain change (via slider ou boutons)
+  useEffect(() => {
+    setTargetGainInput(String(targetGain));
+  }, [targetGain]);
   const [savedSimulations, setSavedSimulations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -841,7 +847,7 @@ export default function InvestmentCalculator() {
           </p>
         </div>
 
-        {/* Boutons flottants discrets en haut à droite */}
+        {/* Boutons flottants en haut à droite */}
         <div style={{ position: 'fixed', top: '20px', right: '20px', display: 'flex', gap: '10px', zIndex: 1000 }}>
           <button onClick={() => setShowHelp(!showHelp)} style={{ padding: '12px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '1.2rem', cursor: 'pointer', opacity: 0.7, transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.target.style.opacity = '1'} onMouseLeave={(e) => e.target.style.opacity = '0.7'}>
             ❓
@@ -905,11 +911,37 @@ export default function InvestmentCalculator() {
               </label>
               
               <div style={{ marginBottom: '20px' }}>
-                <ValidatedInput 
-                  amount={targetGain}
-                  setAmount={setTargetGain}
-                  min={1000}
-                  max={5000000}
+                <input 
+                  type="number" 
+                  value={targetGainInput}
+                  onChange={(e) => setTargetGainInput(e.target.value)}
+                  onBlur={() => {
+                    const num = Number(targetGainInput) || 1000;
+                    const valid = Math.max(1000, Math.min(5000000, num));
+                    setTargetGain(valid);
+                    setTargetGainInput(String(valid));
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.target.blur();
+                    }
+                  }}
+                  min="1000" 
+                  max="5000000" 
+                  step="1000"
+                  placeholder="Entrez votre objectif"
+                  style={{ 
+                    width: '100%', 
+                    padding: '18px', 
+                    borderRadius: '14px', 
+                    background: theme.inputBg, 
+                    color: theme.text, 
+                    border: `3px solid ${theme.cardBorder}`, 
+                    fontSize: '1.5rem', 
+                    fontWeight: '800', 
+                    textAlign: 'center',
+                    boxSizing: 'border-box'
+                  }} 
                 />
               </div>
 
