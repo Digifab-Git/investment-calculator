@@ -168,12 +168,6 @@ export default function InvestmentCalculator() {
   const [showEstimation, setShowEstimation] = useState(false);
   const [showGoalMode, setShowGoalMode] = useState(false);
   const [targetGain, setTargetGain] = useState(50000);
-  const [targetGainInput, setTargetGainInput] = useState('50000');
-  
-  // Synchroniser l'input quand targetGain change (via slider ou boutons)
-  useEffect(() => {
-    setTargetGainInput(String(targetGain));
-  }, [targetGain]);
   const [savedSimulations, setSavedSimulations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -913,19 +907,8 @@ export default function InvestmentCalculator() {
               <div style={{ marginBottom: '20px' }}>
                 <input 
                   type="number" 
-                  value={targetGainInput}
-                  onChange={(e) => setTargetGainInput(e.target.value)}
-                  onBlur={() => {
-                    const num = Number(targetGainInput) || 1000;
-                    const valid = Math.max(1000, Math.min(5000000, num));
-                    setTargetGain(valid);
-                    setTargetGainInput(String(valid));
-                  }}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.target.blur();
-                    }
-                  }}
+                  value={targetGain}
+                  onChange={(e) => setTargetGain(Number(e.target.value) || 1000)}
                   min="1000" 
                   max="5000000" 
                   step="1000"
