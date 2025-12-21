@@ -90,12 +90,22 @@ export default function InvestmentCalculator() {
   const [selectedFund, setSelectedFund] = useState(funds[0]);
   const [amount, setAmount] = useState(500);
   const [darkMode, setDarkMode] = useState(true);
+  const [currentView, setCurrentView] = useState('main');
   const [showGoalMode, setShowGoalMode] = useState(false);
   const [targetGain, setTargetGain] = useState(50000);
   const [savedSimulations, setSavedSimulations] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  // États pour le Simulateur de Groupe
+  const [groupMembers, setGroupMembers] = useState([
+    { id: 1, name: 'Personne A', amount: 500 },
+    { id: 2, name: 'Personne B', amount: 500 }
+  ]);
+  const [nextId, setNextId] = useState(3);
+  const [savedGroupSimulations, setSavedGroupSimulations] = useState([]);
+  const [showGroupHistory, setShowGroupHistory] = useState(false);
 
   const theme = darkMode ? {
     bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
