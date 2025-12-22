@@ -210,6 +210,31 @@ function TargetGainInput({ targetGain, min, max, theme, onUpdate }) {
   );
 }
 
+// ✅ COMPOSANT METRICCARD - STYLE LGM CORP
+function MetricCard({ title, value, subtitle, color = '#10b981' }) {
+  return (
+    <div style={{ 
+      textAlign: 'center', 
+      padding: '20px', 
+      background: 'rgba(255,255,255,0.05)', 
+      borderRadius: '14px',
+      border: '2px solid rgba(255,255,255,0.1)',
+      flex: 1,
+      minWidth: '140px'
+    }}>
+      <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', fontWeight: '600' }}>
+        {title}
+      </div>
+      <div style={{ fontSize: '1.8rem', fontWeight: '900', color: color, marginBottom: '5px' }}>
+        {value}
+      </div>
+      {subtitle && <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+        {subtitle}
+      </div>}
+    </div>
+  );
+}
+
 export default function InvestmentCalculator() {
   const funds = [
     { name: 'Technology Opportunities Fund', rateIncome: 0.005, rateGrowth: 0.0055, minimum: 500, maximum: 50000, duration: 12, icon: '💻' },
@@ -899,6 +924,31 @@ export default function InvestmentCalculator() {
   // PAGE PRINCIPALE COMPLÈTE
   return (
     <div style={{ minHeight: '100vh', background: theme.bg, padding: '40px 20px', color: theme.text, fontFamily: 'system-ui' }}>
+      {/* Toggle Dark/Light Mode - Position fixe en haut à droite */}
+      <button 
+        onClick={() => setDarkMode(!darkMode)} 
+        style={{ 
+          position: 'fixed', 
+          top: '20px', 
+          right: '20px', 
+          padding: '8px 12px', 
+          borderRadius: '10px', 
+          border: `1px solid ${theme.cardBorder}`, 
+          background: theme.cardBg, 
+          color: theme.text, 
+          fontSize: '1.2rem', 
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          zIndex: 1000,
+          transition: 'all 0.2s ease',
+          opacity: 0.7
+        }}
+        onMouseEnter={(e) => e.target.style.opacity = '1'}
+        onMouseLeave={(e) => e.target.style.opacity = '0.7'}
+      >
+        {darkMode ? '☀️' : '🌙'}
+      </button>
+      
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
           <h1 style={{ fontSize: '3rem', fontWeight: '800', background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '10px' }}>
@@ -910,9 +960,6 @@ export default function InvestmentCalculator() {
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => setShowHelp(!showHelp)} style={{ padding: '10px 18px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '0.9rem', cursor: 'pointer', fontWeight: '600' }}>
               ❓ Aide
-            </button>
-            <button onClick={() => setDarkMode(!darkMode)} style={{ padding: '10px 18px', borderRadius: '12px', border: `2px solid ${theme.cardBorder}`, background: theme.cardBg, color: theme.text, fontSize: '1.2rem', cursor: 'pointer' }}>
-              {darkMode ? '☀️' : '🌙'}
             </button>
           </div>
         </div>
@@ -1525,27 +1572,108 @@ export default function InvestmentCalculator() {
               </div>
             ) : (
               <>
-                <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
-                  {[
-                    { label: 'Income', value: incomeView, gain: incomeGain, icon: '💰', color: '#ef4444', desc: 'Capital constant' },
-                    { label: 'Growth', value: growthView, gain: growthGain, icon: '📈', color: '#3b82f6', desc: 'Accumulation linéaire' },
-                    { label: 'Compound', value: compoundView, gain: compoundGain, icon: '🚀', color: '#10b981', desc: 'Croissance exponentielle' }
-                  ].map((view) => (
-                    <div key={view.label} style={{ padding: '18px', background: `linear-gradient(135deg, ${view.color}20, ${view.color}10)`, borderRadius: '14px', border: `2px solid ${view.color}` }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <div>
-                          <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>{view.icon} {view.label}</span>
-                          <div style={{ fontSize: '0.75rem', color: theme.textSec, marginTop: '2px' }}>{view.desc}</div>
-                        </div>
-                        <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: '600' }}>+{formatCurrency(view.gain)}</span>
-                      </div>
-                      <div style={{ fontSize: '1.6rem', fontWeight: '800' }}>{formatCurrency(view.value)}</div>
+                {/* Income View */}
+                <div style={{ padding: '25px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))', borderRadius: '14px', border: '2px solid rgba(239, 68, 68, 0.3)', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '10px', color: '#ef4444', textAlign: 'center' }}>
+                    💰 Income View
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: theme.textSec, textAlign: 'center', marginBottom: '20px' }}>
+                    Capital constant, gains retirés quotidiennement
+                  </div>
+                  
+                  <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💵 Gains quotidiens</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#ef4444' }}>
+                      {formatCurrency(dailyGainIncome)} / jour
                     </div>
-                  ))}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <MetricCard 
+                      title="Total Value" 
+                      value={formatCurrency(incomeView)} 
+                      subtitle="Capital + Gains"
+                      color="#ef4444"
+                    />
+                    <MetricCard 
+                      title="Profit" 
+                      value={formatCurrency(incomeGain)} 
+                      subtitle="Gains purs"
+                      color="#ef4444"
+                    />
+                  </div>
                 </div>
-                <div style={{ padding: '18px', background: 'rgba(168, 85, 247, 0.15)', borderRadius: '14px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#c4b5fd', marginBottom: '5px', fontWeight: '600' }}>ROI Compound</div>
-                  <div style={{ fontSize: '2rem', fontWeight: '800', color: '#a78bfa' }}>+{formatPercent(roi)}</div>
+
+                {/* Growth View */}
+                <div style={{ padding: '25px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))', borderRadius: '14px', border: '2px solid rgba(59, 130, 246, 0.3)', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '10px', color: '#3b82f6', textAlign: 'center' }}>
+                    📈 Growth View
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: theme.textSec, textAlign: 'center', marginBottom: '20px' }}>
+                    Gains accumulés sans réinvestissement
+                  </div>
+                  
+                  <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💵 Gains quotidiens</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#3b82f6' }}>
+                      {formatCurrency(dailyGainGrowth)} / jour
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <MetricCard 
+                      title="Total Value" 
+                      value={formatCurrency(growthView)} 
+                      subtitle="Capital + Gains"
+                      color="#3b82f6"
+                    />
+                    <MetricCard 
+                      title="Profit" 
+                      value={formatCurrency(growthGain)} 
+                      subtitle="Gains purs"
+                      color="#3b82f6"
+                    />
+                  </div>
+                </div>
+
+                {/* Compound View */}
+                <div style={{ padding: '25px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '14px', border: '2px solid rgba(16, 185, 129, 0.3)', position: 'relative', marginBottom: '20px' }}>
+                  <div style={{ position: 'absolute', top: '15px', right: '15px', padding: '6px 12px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '800', color: 'white' }}>
+                    ⭐ OPTIMAL
+                  </div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '10px', color: '#10b981', textAlign: 'center' }}>
+                    🚀 Compound View
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: theme.textSec, textAlign: 'center', marginBottom: '20px' }}>
+                    Réinvestissement automatique (seuil 100$)
+                  </div>
+                  
+                  <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💎 Croissance exponentielle</div>
+                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#10b981' }}>
+                      Gains réinvestis automatiquement
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '15px' }}>
+                    <MetricCard 
+                      title="Total Value" 
+                      value={formatCurrency(compoundView)} 
+                      subtitle="Capital + Gains"
+                      color="#10b981"
+                    />
+                    <MetricCard 
+                      title="Profit" 
+                      value={formatCurrency(compoundGain)} 
+                      subtitle="Gains purs"
+                      color="#10b981"
+                    />
+                  </div>
+                  
+                  <div style={{ padding: '15px', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.8rem', color: theme.textSec, marginBottom: '5px', fontWeight: '600' }}>ROI</div>
+                    <div style={{ fontSize: '2rem', fontWeight: '900', color: '#10b981' }}>+{formatPercent(roi)}</div>
+                  </div>
                 </div>
               </>
             )}
