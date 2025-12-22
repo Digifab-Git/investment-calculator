@@ -1571,9 +1571,9 @@ export default function InvestmentCalculator() {
                 Ajustez le montant au minimum requis
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between' }}>
                 {/* Income View */}
-                <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))', borderRadius: '14px', border: '2px solid rgba(239, 68, 68, 0.3)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))', borderRadius: '14px', border: '2px solid rgba(239, 68, 68, 0.3)', display: 'flex', flexDirection: 'column', flex: '1 1 calc(33.333% - 11px)', minWidth: '250px' }}>
                   <div style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px', color: '#ef4444', textAlign: 'center' }}>
                     💰 Income View
                   </div>
@@ -1616,7 +1616,7 @@ export default function InvestmentCalculator() {
                 </div>
 
                 {/* Growth View */}
-                <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))', borderRadius: '14px', border: '2px solid rgba(59, 130, 246, 0.3)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))', borderRadius: '14px', border: '2px solid rgba(59, 130, 246, 0.3)', display: 'flex', flexDirection: 'column', flex: '1 1 calc(33.333% - 11px)', minWidth: '250px' }}>
                   <div style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px', color: '#3b82f6', textAlign: 'center' }}>
                     📈 Growth View
                   </div>
@@ -1659,7 +1659,7 @@ export default function InvestmentCalculator() {
                 </div>
 
                 {/* Compound View */}
-                <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '14px', border: '2px solid rgba(16, 185, 129, 0.3)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '14px', border: '2px solid rgba(16, 185, 129, 0.3)', position: 'relative', display: 'flex', flexDirection: 'column', flex: '1 1 calc(33.333% - 11px)', minWidth: '250px' }}>
                   <div style={{ position: 'absolute', top: '12px', right: '12px', padding: '4px 10px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '800', color: 'white' }}>
                     ⭐ OPTIMAL
                   </div>
