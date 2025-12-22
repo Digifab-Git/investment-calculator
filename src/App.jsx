@@ -1571,7 +1571,7 @@ export default function InvestmentCalculator() {
                 Ajustez le montant au minimum requis
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
                 {/* Income View */}
                 <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))', borderRadius: '14px', border: '2px solid rgba(239, 68, 68, 0.3)', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px', color: '#ef4444', textAlign: 'center' }}>
