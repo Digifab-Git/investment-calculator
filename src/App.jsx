@@ -1571,111 +1571,144 @@ export default function InvestmentCalculator() {
                 Ajustez le montant au minimum requis
               </div>
             ) : (
-              <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                 {/* Income View */}
-                <div style={{ padding: '25px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))', borderRadius: '14px', border: '2px solid rgba(239, 68, 68, 0.3)', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '10px', color: '#ef4444', textAlign: 'center' }}>
+                <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))', borderRadius: '14px', border: '2px solid rgba(239, 68, 68, 0.3)', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px', color: '#ef4444', textAlign: 'center' }}>
                     💰 Income View
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: theme.textSec, textAlign: 'center', marginBottom: '20px' }}>
-                    Capital constant, gains retirés quotidiennement
+                  <div style={{ fontSize: '0.75rem', color: theme.textSec, textAlign: 'center', marginBottom: '15px' }}>
+                    Capital constant
                   </div>
                   
-                  <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💵 Gains quotidiens</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#ef4444' }}>
-                      {formatCurrency(dailyGainIncome)} / jour
+                  <div style={{ marginBottom: '15px', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💵 Gains quotidiens</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#ef4444' }}>
+                      {formatCurrency(dailyGainIncome)}<span style={{ fontSize: '0.8rem', fontWeight: '600' }}> /jour</span>
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                    <MetricCard 
-                      title="Total Value" 
-                      value={formatCurrency(incomeView)} 
-                      subtitle="Capital + Gains"
-                      color="#ef4444"
-                    />
-                    <MetricCard 
-                      title="Profit" 
-                      value={formatCurrency(incomeGain)} 
-                      subtitle="Gains purs"
-                      color="#ef4444"
-                    />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px', fontWeight: '600' }}>
+                        Total Value
+                      </div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#ef4444' }}>
+                        {formatCurrency(incomeView)}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
+                        Capital + Gains
+                      </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px', fontWeight: '600' }}>
+                        Profit
+                      </div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#ef4444' }}>
+                        {formatCurrency(incomeGain)}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
+                        Gains purs
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Growth View */}
-                <div style={{ padding: '25px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))', borderRadius: '14px', border: '2px solid rgba(59, 130, 246, 0.3)', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '10px', color: '#3b82f6', textAlign: 'center' }}>
+                <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))', borderRadius: '14px', border: '2px solid rgba(59, 130, 246, 0.3)', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px', color: '#3b82f6', textAlign: 'center' }}>
                     📈 Growth View
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: theme.textSec, textAlign: 'center', marginBottom: '20px' }}>
-                    Gains accumulés sans réinvestissement
+                  <div style={{ fontSize: '0.75rem', color: theme.textSec, textAlign: 'center', marginBottom: '15px' }}>
+                    Accumulation linéaire
                   </div>
                   
-                  <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💵 Gains quotidiens</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#3b82f6' }}>
-                      {formatCurrency(dailyGainGrowth)} / jour
+                  <div style={{ marginBottom: '15px', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💵 Gains quotidiens</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#3b82f6' }}>
+                      {formatCurrency(dailyGainGrowth)}<span style={{ fontSize: '0.8rem', fontWeight: '600' }}> /jour</span>
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                    <MetricCard 
-                      title="Total Value" 
-                      value={formatCurrency(growthView)} 
-                      subtitle="Capital + Gains"
-                      color="#3b82f6"
-                    />
-                    <MetricCard 
-                      title="Profit" 
-                      value={formatCurrency(growthGain)} 
-                      subtitle="Gains purs"
-                      color="#3b82f6"
-                    />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px', fontWeight: '600' }}>
+                        Total Value
+                      </div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#3b82f6' }}>
+                        {formatCurrency(growthView)}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
+                        Capital + Gains
+                      </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px', fontWeight: '600' }}>
+                        Profit
+                      </div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#3b82f6' }}>
+                        {formatCurrency(growthGain)}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
+                        Gains purs
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Compound View */}
-                <div style={{ padding: '25px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '14px', border: '2px solid rgba(16, 185, 129, 0.3)', position: 'relative', marginBottom: '20px' }}>
-                  <div style={{ position: 'absolute', top: '15px', right: '15px', padding: '6px 12px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '800', color: 'white' }}>
+                <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))', borderRadius: '14px', border: '2px solid rgba(16, 185, 129, 0.3)', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', padding: '4px 10px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '800', color: 'white' }}>
                     ⭐ OPTIMAL
                   </div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '10px', color: '#10b981', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '8px', color: '#10b981', textAlign: 'center' }}>
                     🚀 Compound View
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: theme.textSec, textAlign: 'center', marginBottom: '20px' }}>
-                    Réinvestissement automatique (seuil 100$)
+                  <div style={{ fontSize: '0.75rem', color: theme.textSec, textAlign: 'center', marginBottom: '15px' }}>
+                    Croissance exponentielle
                   </div>
                   
-                  <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSec, marginBottom: '5px' }}>💎 Croissance exponentielle</div>
-                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#10b981' }}>
-                      Gains réinvestis automatiquement
+                  <div style={{ marginBottom: '15px', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '4px' }}>💎 Réinvestissement auto</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#10b981' }}>
+                      Seuil: 100 $
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '15px' }}>
-                    <MetricCard 
-                      title="Total Value" 
-                      value={formatCurrency(compoundView)} 
-                      subtitle="Capital + Gains"
-                      color="#10b981"
-                    />
-                    <MetricCard 
-                      title="Profit" 
-                      value={formatCurrency(compoundGain)} 
-                      subtitle="Gains purs"
-                      color="#10b981"
-                    />
-                  </div>
-                  
-                  <div style={{ padding: '15px', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.8rem', color: theme.textSec, marginBottom: '5px', fontWeight: '600' }}>ROI</div>
-                    <div style={{ fontSize: '2rem', fontWeight: '900', color: '#10b981' }}>+{formatPercent(roi)}</div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px', fontWeight: '600' }}>
+                        Total Value
+                      </div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#10b981' }}>
+                        {formatCurrency(compoundView)}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
+                        Capital + Gains
+                      </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', marginBottom: '5px', fontWeight: '600' }}>
+                        Profit
+                      </div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#10b981' }}>
+                        {formatCurrency(compoundGain)}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
+                        Gains purs
+                      </div>
+                    </div>
+                    
+                    <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '10px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.7rem', color: theme.textSec, marginBottom: '3px', fontWeight: '600' }}>ROI</div>
+                      <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#10b981' }}>+{formatPercent(roi)}</div>
+                    </div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </Card>
         </div>
