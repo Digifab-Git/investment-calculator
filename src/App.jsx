@@ -1408,6 +1408,7 @@ export default function InvestmentCalculator() {
 
 
         {!showGoalMode && !showHistory && !showComparison && (
+          <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', marginBottom: '30px' }}>
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>🏦 Fonds d'investissement</h2>
@@ -1563,7 +1564,9 @@ export default function InvestmentCalculator() {
               {isValid ? '✓ Montant valide' : '⚠ Montant insuffisant'}
             </div>
           </Card>
+          </div>
 
+          {/* Card Résultats en PLEINE LARGEUR - hors du grid */}
           <Card>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '20px' }}>📊 Résultats des simulations</h2>
             {!isValid ? (
@@ -1711,7 +1714,7 @@ export default function InvestmentCalculator() {
               </div>
             )}
           </Card>
-        </div>
+          </>
         )}
 
         <div style={{ textAlign: 'center', marginTop: '50px', padding: '20px', color: theme.textSec, fontSize: '0.9rem', borderTop: `1px solid ${theme.cardBorder}` }}>
